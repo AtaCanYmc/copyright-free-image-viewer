@@ -24,7 +24,7 @@ create_files_if_not_exist([
 search_file_path = f"assets/{project_name}/search.txt"
 json_file_path = f"assets/{project_name}/json_files/{json_map_file_name}.json"
 json_map = read_json_file(json_file_path)
-removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) > 0] if json_map else []
+removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) > 2] if json_map else []
 search_terms = read_search_terms(search_file_path, removed_keys)
 
 state = {
@@ -125,9 +125,15 @@ def decision():
     if not term:
         return redirect(url_for("index"))
 
-    if action == "next":
+    if action == "next-term":
         state["term_idx"] += 1
         state["photo_idx"] = 0
+        return redirect(url_for("index"))
+
+    if action == "prev-term":
+        if state["term_idx"] > 0:
+            state["term_idx"] -= 1
+            state["photo_idx"] = 0
         return redirect(url_for("index"))
 
     if action == "previous":

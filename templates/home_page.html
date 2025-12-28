@@ -11,20 +11,30 @@
 <h3>Term ({{ term_idx+1 }}/{{ total_terms }}): {{ term }}</h3>
 {% if photo_url %}
 <img src="{{ photo_url }}" style="max-width:90vw;max-height:70vh;border:1px solid #ccc;" alt="photo">
-<form method="post" action="{{ url_for('decision') }}">
-    <input type="hidden" name="action" value="yes">
-    <button type="submit" style="height: 35px; border-radius: 10px;">Yes (Save)</button>
-</form>
-<br>
-<form method="post" action="{{ url_for('decision') }}">
-    <input type="hidden" name="action" value="no">
-    <button type="submit" style="height: 35px; border-radius: 10px;">No (Skip)</button>
-</form>
-<br>
-<form method="post" action="{{ url_for('decision') }}">
-    <input type="hidden" name="action" value="next">
-    <button type="submit" style="height: 35px; border-radius: 10px;">Next Term</button>
-</form>
+<div class="yes-no" style="display:flex; gap:10px; margin-top:10px; flex-direction: row;">
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="yes">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Yes (Save)</button>
+    </form>
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="no">
+        <button type="submit" style="height: 35px; border-radius: 10px;">No (Skip)</button>
+    </form>
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="previous">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Previous Image</button>
+    </form>
+</div>
+<div class="term" style="display:flex; gap:10px; margin-top:10px; flex-direction: row;">
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="prev-term">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Previous Term</button>
+    </form>
+    <form method="post" action="{{ url_for('decision') }}">
+        <input type="hidden" name="action" value="next-term">
+        <button type="submit" style="height: 35px; border-radius: 10px;">Next Term</button>
+    </form>
+</div>
 {% else %}
 <p>No image for this term. Skipping...</p>
 <a href="{{ url_for('next_step') }}">Continue</a>
