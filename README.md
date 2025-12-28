@@ -34,6 +34,3 @@ A simple Flask-based web UI to preview Pexels search results and save images bas
 ## Notes
 - Never commit real API keys to the repository.  
 - Keep ` .env` local; commit only ` .env.example` with placeholder values.
-
-## License
-Add a suitable open source license (e.g. `LICENSE`) if required.
