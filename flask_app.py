@@ -23,14 +23,16 @@ create_files_if_not_exist([
 
 search_file_path = f"assets/{project_name}/search.txt"
 json_file_path = f"assets/{project_name}/json_files/{json_map_file_name}.json"
-search_terms = read_search_terms(search_file_path)
+json_map = read_json_file(json_file_path)
+removed_keys = [key for key in json_map.keys()] if json_map else []
+search_terms = read_search_terms(search_file_path, removed_keys)
 
 state = {
     "term_idx": 0,
     "photo_idx": 0,
     "photos_cache": {},  # term_idx -> list[Photo]
     "downloaded": 0,
-    "downloaded_json": read_json_file(json_file_path),
+    "downloaded_json": json_map,
 }
 
 TEMPLATE = read_html_as_string("templates/home_page.html")
@@ -119,22 +121,31 @@ def index():
 def decision():
     action = request.form.get("action")
     term, photo, url = current_photo_info()
+
     if not term:
         return redirect(url_for("index"))
+
     if action == "next":
-        # sadece terimi atla
         state["term_idx"] += 1
         state["photo_idx"] = 0
         return redirect(url_for("index"))
+
+    if action == "previous":
+        if state["photo_idx"] > 0:
+            state["photo_idx"] -= 1
+        elif state["term_idx"] > 0:
+            state["term_idx"] -= 1
+            prev_photos = get_photos_for_term_idx(state["term_idx"])
+            state["photo_idx"] = max(0, len(prev_photos) - 1)
+        return redirect(url_for("index"))
+
     if action == "yes" and photo:
-        # hedef klasör
         folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
         os.makedirs(folder, exist_ok=True)
-        # download_pexels_images beklenen argümanlara göre çağrılır
         download_pexels_images([photo], folder)
         add_image_to_json(term, photo)
         state["downloaded"] += 1
-    # her iki durumda da ilerle
+
     advance_after_action()
     return redirect(url_for("index"))
 

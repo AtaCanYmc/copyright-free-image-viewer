@@ -69,9 +69,10 @@ def get_yes_no_input(prompt: str) -> bool:
             print("Invalid input. Please enter 'y' or 'n'.")
 
 
-def read_search_terms(file_path: str) -> list[str]:
+def read_search_terms(file_path: str, remove_keys: list[str]) -> list[str]:
     with open(file_path, 'r') as file:
-        terms = [line.strip() for line in file if line.strip()]
+        terms = [line.strip() for line in file if line.strip()
+                 and term_to_folder_name(line.strip()) not in remove_keys]
     return terms
 
 
