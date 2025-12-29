@@ -6,7 +6,8 @@ from flask import Flask, render_template_string, redirect, url_for, request
 from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
-                                read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist)
+                                read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
+                                min_image_for_term)
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images
 from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
     remove_id_from_img_url
@@ -29,7 +30,7 @@ search_file_path = f"assets/{project_name}/search.txt"
 json_file_path = f"assets/{project_name}/json_files/{json_map_file_name}.json"
 json_map = read_json_file(json_file_path)
 
-removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) > 2] if json_map else []
+removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) >= min_image_for_term] if json_map else []
 search_terms = read_search_terms(search_file_path, removed_keys)
 
 state = {
