@@ -6,7 +6,8 @@ from flask import Flask, render_template_string, redirect, url_for, request
 
 from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images, \
     download_flicker_images_from_json
-from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images
+from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images, \
+    download_pexels_images_from_json
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
@@ -14,7 +15,7 @@ from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images, \
     download_pixabay_images_from_json
 from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
-    remove_id_from_img_url
+    remove_id_from_img_url, download_unsplash_images_from_json
 
 app = Flask(__name__)
 
@@ -276,13 +277,13 @@ def decision():
 def download_api_images():
     if state["current_api"] == 'pexels':
         create_folders_if_not_exist([f"assets/{project_name}/image_files/pexels"])
-        pass
+        download_pexels_images_from_json(json_file_path, f"assets/{project_name}/image_files/pexels")
     elif state["current_api"] == 'pixabay':
         create_folders_if_not_exist([f"assets/{project_name}/image_files/pixabay"])
         download_pixabay_images_from_json(json_file_path, f"assets/{project_name}/image_files/pixabay")
     elif state["current_api"] == 'unsplash':
         create_folders_if_not_exist([f"assets/{project_name}/image_files/unsplash"])
-        pass
+        download_unsplash_images_from_json(json_file_path, f"assets/{project_name}/image_files/unsplash")
     elif state["current_api"] == 'flickr':
         create_folders_if_not_exist([f"assets/{project_name}/image_files/flickr"])
         download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files/flickr")

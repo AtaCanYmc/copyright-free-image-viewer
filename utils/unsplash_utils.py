@@ -1,11 +1,11 @@
 import os
 from dataclasses import dataclass, field
 from typing import Optional, List
-
+import json
 import requests
 from dotenv import load_dotenv
 
-from utils.common_utils import get_remote_size
+from utils.common_utils import get_remote_size, read_json_file
 
 load_dotenv()
 
@@ -202,3 +202,47 @@ def download_unsplash_images(image_list: list[UnsplashImage], folder_name: str):
             print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
         else:
             print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
+
+
+def convert_json_to_unsplash_image(img_data: dict) -> UnsplashImage:
+    return UnsplashImage(
+        id=img_data['id'],
+        created_at=img_data.get('created_at'),
+        width=img_data.get('width'),
+        height=img_data.get('height'),
+        color=img_data.get('color'),
+        blur_hash=img_data.get('blur_hash'),
+        description=img_data.get('description'),
+        alt_description=img_data.get('alt_description'),
+        urls=Urls(**img_data['urls']),
+        links=Links(
+            self_=img_data['links'].get('self'),
+            html=img_data['links'].get('html'),
+            download=img_data['links'].get('download')
+        ),
+        user=User(
+            id=img_data['user']['id'],
+            username=img_data['user']['username'],
+            name=img_data['user'].get('name'),
+            first_name=img_data['user'].get('first_name'),
+            last_name=img_data['user'].get('last_name'),
+            instagram_username=img_data['user'].get('instagram_username'),
+            twitter_username=img_data['user'].get('twitter_username'),
+            portfolio_url=img_data['user'].get('portfolio_url'),
+            profile_image=ProfileImage(**img_data['user']['profile_image']),
+            links=UserLinks(
+                self_=img_data['user']['links'].get('self'),
+                html=img_data['user']['links'].get('html'),
+                photos=img_data['user']['links'].get('photos')
+            )
+        ),
+        current_user_collections=img_data.get('current_user_collections', [])
+    )
+
+
+def download_unsplash_images_from_json(json_file: str, folder_name: str):
+    json_data = read_json_file(json_file)
+    for term, images in json_data.items():
+        image_list = [convert_json_to_unsplash_image(img_data) for img_data in images if
+                      img_data.get('apiType') == 'unsplash']
+        download_unsplash_images(image_list, folder_name)

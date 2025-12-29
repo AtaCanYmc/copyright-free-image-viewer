@@ -3,8 +3,8 @@ from pexels_api import API
 import os
 import requests
 from pexels_api.tools import Photo
-
-from utils.common_utils import get_remote_size
+import json
+from utils.common_utils import get_remote_size, read_json_file
 
 load_dotenv()
 
@@ -71,3 +71,29 @@ def convert_pexels_photo_to_json(img: Photo) -> dict:
         'extension': img.extension,
         'apiType': 'pexels'
     }
+
+
+def download_pexels_images_from_json(json_file: str, folder_name: str):
+    data = read_json_file(json_file)
+    for term, images in data.items():
+        for img_data in images:
+            if img_data.get('apiType') != 'pexels':
+                continue
+
+            url = img_data['original']
+            image_info = get_remote_size(url)
+            content_kb = image_info.get('kb_decimal', 0)
+
+            if content_kb > max_image_kb:
+                url = img_data['compressed']
+                image_info = get_remote_size(url)
+                content_kb = image_info.get('kb_decimal', 0)
+
+            if content_kb <= max_image_kb:
+                image_data = requests.get(url, timeout=30)
+                image_path = os.path.join(folder_name, f"{img_data['id']}.{img_data['extension']}")
+                with open(image_path, 'wb') as file:
+                    file.write(image_data.content)
+                print(f"Downloaded image {img_data['id']} to {image_path} ({content_kb:.2f} KB)")
+            else:
+                print(f"Skipped image {img_data['id']} ({content_kb:.2f} KB exceeds limit)")

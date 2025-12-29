@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from dataclasses import dataclass
 import json
 
-from utils.common_utils import get_remote_size
+from utils.common_utils import get_remote_size, read_json_file
 
 load_dotenv()
 
@@ -148,21 +148,9 @@ def convert_json_to_pixabay_image(img_data: dict) -> PixabayImage:
 
 
 def download_pixabay_images_from_json(json_file: str, folder_name: str):
-    with open(json_file, 'r', encoding='utf-8') as file:
-        image_list = json.load(file)
+    json_data = read_json_file(json_file)
 
-    for term, images in image_list.items():
-        term_folder = os.path.join(folder_name, term)
-        img_types = set(img.get('apiType') for img in images)
-
-        if 'pixabay' not in img_types:
-            continue
-
-        if not os.path.exists(term_folder):
-            os.makedirs(term_folder)
-
-        for img_data in images:
-            if img_data.get('apiType') != 'pixabay':
-                continue
-            img = convert_json_to_pixabay_image(img_data)
-            download_pixabay_images([img], term_folder)
+    for term, images in json_data.items():
+        pixabay_images = [convert_json_to_pixabay_image(img_data) for img_data in images if
+                          img_data.get('apiType') == 'pixabay']
+        download_pixabay_images(pixabay_images, folder_name)
