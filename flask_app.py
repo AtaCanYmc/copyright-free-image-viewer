@@ -153,7 +153,7 @@ def download_image(photo: Any, term: str, force_download=False):
         return
 
     c_api = state["current_api"]
-    folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
+    folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}/{c_api}"
     os.makedirs(folder, exist_ok=True)
 
     if c_api == 'pixabay':
