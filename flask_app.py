@@ -11,7 +11,8 @@ from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
                                 min_image_for_term, is_download)
-from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images
+from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images, \
+    download_pixabay_images_from_json
 from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
     remove_id_from_img_url
 
@@ -278,7 +279,7 @@ def download_api_images():
         pass
     elif state["current_api"] == 'pixabay':
         create_folders_if_not_exist([f"assets/{project_name}/image_files/pixabay"])
-        pass
+        download_pixabay_images_from_json(json_file_path, f"assets/{project_name}/image_files/pixabay")
     elif state["current_api"] == 'unsplash':
         create_folders_if_not_exist([f"assets/{project_name}/image_files/unsplash"])
         pass

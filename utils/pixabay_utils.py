@@ -2,6 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from dataclasses import dataclass
+import json
 
 from utils.common_utils import get_remote_size
 
@@ -118,3 +119,50 @@ def convert_pixabay_image_to_json(img: PixabayImage) -> dict:
         'userImageURL': img.userImageURL,
         'apiType': 'pixabay'
     }
+
+
+def convert_json_to_pixabay_image(img_data: dict) -> PixabayImage:
+    return PixabayImage(
+        id=img_data['id'],
+        pageURL=img_data['pageURL'],
+        type=img_data['type'],
+        tags=img_data['tags'],
+        previewURL=img_data['previewURL'],
+        previewWidth=img_data['previewWidth'],
+        previewHeight=img_data['previewHeight'],
+        webformatURL=img_data['webformatURL'],
+        webformatWidth=img_data['webformatWidth'],
+        webformatHeight=img_data['webformatHeight'],
+        largeImageURL=img_data['largeImageURL'],
+        imageWidth=img_data['imageWidth'],
+        imageHeight=img_data['imageHeight'],
+        imageSize=img_data['imageSize'],
+        views=img_data['views'],
+        downloads=img_data['downloads'],
+        likes=img_data['likes'],
+        comments=img_data['comments'],
+        user_id=img_data['user_id'],
+        user=img_data['user'],
+        userImageURL=img_data['userImageURL']
+    )
+
+
+def download_pixabay_images_from_json(json_file: str, folder_name: str):
+    with open(json_file, 'r', encoding='utf-8') as file:
+        image_list = json.load(file)
+
+    for term, images in image_list.items():
+        term_folder = os.path.join(folder_name, term)
+        img_types = set(img.get('apiType') for img in images)
+
+        if 'pixabay' not in img_types:
+            continue
+
+        if not os.path.exists(term_folder):
+            os.makedirs(term_folder)
+
+        for img_data in images:
+            if img_data.get('apiType') != 'pixabay':
+                continue
+            img = convert_json_to_pixabay_image(img_data)
+            download_pixabay_images([img], term_folder)
