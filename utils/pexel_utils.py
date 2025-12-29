@@ -4,7 +4,7 @@ import os
 import requests
 from pexels_api.tools import Photo
 import json
-from utils.common_utils import get_remote_size, read_json_file
+from utils.common_utils import get_remote_size, read_json_file, create_folders_if_not_exist
 
 load_dotenv()
 
@@ -85,13 +85,16 @@ def download_pexels_images_from_json(json_file: str, folder_name: str):
             content_kb = image_info.get('kb_decimal', 0)
 
             if content_kb > max_image_kb:
-                url = img_data['compressed']
+                url = img_data['large']
                 image_info = get_remote_size(url)
                 content_kb = image_info.get('kb_decimal', 0)
 
             if content_kb <= max_image_kb:
                 image_data = requests.get(url, timeout=30)
-                image_path = os.path.join(folder_name, f"{img_data['id']}.{img_data['extension']}")
+                folder_path = os.path.join(folder_name, term)
+                image_path = os.path.join(folder_path, f"{img_data['id']}.{img_data['extension']}")
+
+                create_folders_if_not_exist([folder_path])
                 with open(image_path, 'wb') as file:
                     file.write(image_data.content)
                 print(f"Downloaded image {img_data['id']} to {image_path} ({content_kb:.2f} KB)")
