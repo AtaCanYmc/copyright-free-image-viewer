@@ -249,12 +249,6 @@ def decision():
     return decision_execution(action)
 
 
-@app.route("/next")
-def next_step():
-    advance_after_action()
-    return redirect(url_for("index"))
-
-
 if __name__ == "__main__":
     is_continue = get_yes_no_input(
         f"Fill the assets/{project_name}/search.txt file with search terms before continuing. Continue?")
