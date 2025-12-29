@@ -1,5 +1,7 @@
 # python
 import os
+import webbrowser
+from threading import Timer
 from typing import Any
 
 from flask import Flask, render_template_string, redirect, url_for, request
@@ -291,6 +293,10 @@ def download_api_images():
     return redirect(url_for("index"))
 
 
+def open_browser():
+    webbrowser.open_new("http://127.0.0.1:8080")
+
+
 if __name__ == "__main__":
     is_continue = get_yes_no_input(
         f"Fill the assets/{project_name}/search.txt file with search terms before continuing. Continue?")
@@ -299,4 +305,5 @@ if __name__ == "__main__":
         print("Exiting program. Please fill the search.txt file and run again.")
         exit(0)
 
+    Timer(1.5, open_browser).start()
     app.run(host="0.0.0.0", port=8080, debug=True)
