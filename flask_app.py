@@ -13,7 +13,8 @@ from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexel
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
-                                min_image_for_term, is_download, save_text_file, app_port, app_host)
+                                min_image_for_term, is_download, save_text_file, app_port, app_host, use_debug_mode,
+                                use_reloader)
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images, \
     download_pixabay_images_from_json
 from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
@@ -54,6 +55,12 @@ state = {
 HOME_PAGE_HTML = read_html_as_string("templates/home_page.html")
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
 ERROR_PAGE_HTML = read_html_as_string("templates/error_page.html")
+
+pages = [
+    {'name': 'home', 'route': '/'},
+    {'name': 'setup', 'route': '/setup'},
+    {'name': 'review', 'route': '/review'}
+]
 
 
 def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
@@ -330,20 +337,27 @@ def download_api_images():
     return redirect(url_for("review"))
 
 
+@app.context_processor
+def inject_pages():
+    return dict(pages=pages)
+
+
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template(ERROR_PAGE_HTML,
-                           error_code="404",
-                           error_title="Page Not Found",
-                           error_message="The page you are looking for may have been moved or deleted."), 404
+    return (render_template_string(ERROR_PAGE_HTML,
+                            error_code="404",
+                            error_title="Page Not Found",
+                            error_message="The page you are looking for may have been moved or deleted."),
+            404)
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template(ERROR_PAGE_HTML,
-                           error_code="500",
-                           error_title="Internal Server Error",
-                           error_message="An unexpected issue occurred on the server side. Please check your code."), 500
+    return (render_template_string(ERROR_PAGE_HTML,
+                            error_code="500",
+                            error_title="Internal Server Error",
+                            error_message="An unexpected issue occurred on the server side. Please check your code."),
+            500)
 
 
 def open_browser():
@@ -353,4 +367,4 @@ def open_browser():
 
 if __name__ == "__main__":
     Timer(2, open_browser).start()
-    app.run(host=app_host, port=app_port, debug=True, use_reloader=False)
+    app.run(host=app_host, port=app_port, debug=use_debug_mode, use_reloader=use_reloader)

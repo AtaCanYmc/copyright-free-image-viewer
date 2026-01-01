@@ -12,6 +12,8 @@ min_image_for_term = int(os.getenv('MIN_IMAGES_PER_TERM', '1'))
 is_download = os.getenv('DOWNLOAD_IMAGES', 'false').lower() == 'true'
 app_port = os.getenv('APP_PORT', '8080')
 app_host = os.getenv('APP_HOST', '0.0.0.0')
+use_debug_mode = os.getenv('DEBUG', 'false').lower() == 'true'
+use_reloader = os.getenv('USE_RELOADER', 'false').lower() == 'true'
 
 
 def get_remote_size(url: str) -> dict:
