@@ -96,3 +96,8 @@ def read_json_file(file_path: str) -> dict:
 def save_json_file(file_path: str, data: dict):
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
+
+
+def save_text_file(file_path: str, data: str):
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.write(data)

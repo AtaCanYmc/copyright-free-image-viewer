@@ -13,7 +13,7 @@ from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexel
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
-                                min_image_for_term, is_download)
+                                min_image_for_term, is_download, save_text_file)
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images, \
     download_pixabay_images_from_json
 from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
@@ -49,7 +49,8 @@ state = {
     "current_api": 'pexels'
 }
 
-TEMPLATE = read_html_as_string("templates/home_page.html")
+HOME_PAGE_HTML = read_html_as_string("templates/home_page.html")
+TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
 
 
 def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
@@ -241,14 +242,16 @@ def decision_execution(action: str):
 
 @app.route("/")
 def index():
+    if not search_terms:
+        return redirect(url_for("setup"))
     if state["term_idx"] >= len(search_terms):
-        return render_template_string(TEMPLATE, finished=True, downloaded=state["downloaded"])
+        return render_template_string(HOME_PAGE_HTML, finished=True, downloaded=state["downloaded"])
     term, photo, url, cur_term_saved_img_count = current_photo_info()
     finished = False
     if term is None:
         finished = True
     return render_template_string(
-        TEMPLATE,
+        HOME_PAGE_HTML,
         finished=finished,
         term=term,
         term_idx=state["term_idx"],
@@ -257,6 +260,23 @@ def index():
         downloaded=state["downloaded"],
         current_api=state["current_api"],
         term_photo_counter=cur_term_saved_img_count
+    )
+
+
+@app.route("/setup", methods=['GET', 'POST'])
+def setup():
+    global search_terms
+
+    if request.method == 'POST':
+        content = request.form.get('terms', '')
+        save_text_file(search_file_path, content)
+        search_terms = read_search_terms(search_file_path, removed_keys)
+        return redirect(url_for('index'))
+
+    return render_template_string(
+        TXT_SETUP_PAGE_HTML,
+        project_name=project_name,
+        terms="\n".join(search_terms)
     )
 
 
@@ -294,16 +314,9 @@ def download_api_images():
 
 
 def open_browser():
-    webbrowser.open_new("http://127.0.0.1:8080")
+    webbrowser.open_new("http://127.0.0.1:8080/setup")
 
 
 if __name__ == "__main__":
-    is_continue = get_yes_no_input(
-        f"Fill the assets/{project_name}/search.txt file with search terms before continuing. Continue?")
-
-    if not is_continue:
-        print("Exiting program. Please fill the search.txt file and run again.")
-        exit(0)
-
-    Timer(1.5, open_browser).start()
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    Timer(2, open_browser).start()
+    app.run(host="0.0.0.0", port=8080, debug=True, use_reloader=False)
