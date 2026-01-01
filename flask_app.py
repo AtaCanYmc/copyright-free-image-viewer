@@ -11,7 +11,7 @@ from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_js
 from utils.pexel_utils import convert_pexels_photo_to_json, get_image_from_pexels, download_pexels_images, \
     download_pexels_images_from_json
 from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
-                                get_yes_no_input, term_to_folder_name, project_name, read_html_as_string,
+                                term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
                                 min_image_for_term, is_download, save_text_file, app_port, app_host)
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images, \

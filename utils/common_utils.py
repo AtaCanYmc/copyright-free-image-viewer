@@ -67,17 +67,6 @@ def create_files_if_not_exist(file_paths: list[str]):
                 file.write('')
 
 
-def get_yes_no_input(prompt: str) -> bool:
-    while True:
-        user_input = input(f"{prompt} (y/n): ").strip().lower()
-        if user_input in ['y', 'yes']:
-            return True
-        elif user_input in ['n', 'no']:
-            return False
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")
-
-
 def read_search_terms(file_path: str, remove_keys: list[str]) -> list[str]:
     with open(file_path, 'r') as file:
         terms = [line.strip() for line in file if line.strip()
