@@ -11,6 +11,19 @@
         .image-container { max-height: 65vh; }
         .btn-transition { transition: all 0.2s ease; }
     </style>
+    <script>
+        document.addEventListener('submit', function() {
+            const overlay = document.getElementById('loading-overlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            });
+        });
+    </script>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
 
@@ -236,6 +249,16 @@
     </div>
     {% endif %}
 </main>
-
+<div id="loading-overlay"
+     class="hidden fixed inset-0 bg-indigo-900/20 backdrop-blur-sm z-[100] flex items-center justify-center transition-all duration-300">
+    <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+        <div class="relative w-16 h-16">
+            <div class="absolute inset-0 border-4 border-indigo-100 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <p class="mt-4 text-indigo-900 font-bold tracking-tight">Processing...</p>
+        <p class="text-xs text-gray-400 mt-1 italic">Please wait while we connect to API</p>
+    </div>
+</div>
 </body>
 </html>

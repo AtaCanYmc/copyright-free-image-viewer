@@ -13,6 +13,7 @@ if not pixabay_api_key or not pixabay_api_url:
     raise EnvironmentError(
         "Environment variables `PIXABAY_API_KEY` "
         "or `PIXABAY_API_URL` are not set. Set them in the environment or in a `.env` file.")
+max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
 
 
 @dataclass
@@ -38,6 +39,10 @@ class PixabayImage:
     user_id: int
     user: str
     userImageURL: str
+
+
+def get_extension_from_url(url: str):
+    return url.split('.')[-1]
 
 
 def get_image_from_pixabay(term, page_idx=1, results_per_page=15) -> list[PixabayImage]:
@@ -93,14 +98,14 @@ def download_pixabay_images(image_list: list[PixabayImage], folder_name: str):
         url = img.largeImageURL
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)
-        if content_kb <= int(os.getenv('MAX_KB_IMAGE_SIZE', '512')):
+        if content_kb <= max_image_kb:
             try:
                 image_data = requests.get(url, timeout=30)
             except requests.RequestException as e:
                 print(f"Error downloading image {img.id} from Pixabay: {e}")
                 return
 
-            extension = url.split('.')[-1]
+            extension = get_extension_from_url(url)
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
             with open(image_path, 'wb') as file:
                 file.write(image_data.content)
@@ -132,6 +137,7 @@ def convert_pixabay_image_to_json(img: PixabayImage) -> dict:
         'user_id': img.user_id,
         'user': img.user,
         'userImageURL': img.userImageURL,
+        'extension': get_extension_from_url(img.largeImageURL or img.webformatURL or img.previewURL),
         'apiType': 'pixabay'
     }
 

@@ -32,11 +32,15 @@ def get_remote_size(url: str) -> dict:
         pass
 
     size = 0
-    with requests.get(url, stream=True, timeout=30) as r:
-        r.raise_for_status()
-        for chunk in r.iter_content(8192):
-            if chunk:
-                size += len(chunk)
+    try:
+        with requests.get(url, stream=True, timeout=30) as r:
+            r.raise_for_status()
+            for chunk in r.iter_content(8192):
+                if chunk:
+                    size += len(chunk)
+    except Exception:
+        print(f"Could not determine size for URL: {url}")  # Optional: log the error
+        pass
 
     return {
         'bytes': size,
@@ -88,3 +92,31 @@ def save_json_file(file_path: str, data: dict):
 def save_text_file(file_path: str, data: str):
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(data)
+
+
+def get_image_url(img: dict) -> str:
+    if not img:
+        return "#"
+    if img.get('apiType') == 'pexels':
+        return img.get('original') or img.get('large2x') or img.get('url')
+    elif img.get('apiType') == 'pixabay':
+        return img.get('fullHDURL') or img.get('largeImageURL') or img.get('url')
+    elif img.get('apiType') == 'unsplash':
+        urls = img.get('urls', {})
+        return urls.get('full') or urls.get('regular') or urls.get('small') or img.get('url')
+    elif img.get('apiType') == 'flickr':
+        return img.get('highResUrl') or img.get('url')
+    return img.get('highResUrl') or img.get('original') or img.get('url') or "#"
+
+
+def get_thumbnail(img):
+    if img.get('apiType') == 'pexels':
+        return img.get('tiny') or img.get('small')
+    elif img.get('apiType') == 'pixabay':
+        return img.get('previewURL')
+    elif img.get('apiType') == 'unsplash':
+        urls = img.get('urls', {})
+        return urls.get('thumb') or urls.get('small')
+    elif img.get('apiType') == 'flickr':
+        return img.get('url')
+    return '#'

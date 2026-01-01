@@ -1,9 +1,11 @@
+import json
 import os
+import shutil
 import webbrowser
 from threading import Timer
 from typing import Any
 
-from flask import Flask, render_template_string, redirect, url_for, request
+from flask import Flask, render_template_string, redirect, url_for, request, send_file
 
 from utils.env_utils import get_env_file_as_kvp_list
 from utils.flickr_utils import get_image_from_flickr, convert_flickr_image_to_json, download_flickr_images, \
@@ -14,7 +16,7 @@ from utils.common_utils import (create_folders_if_not_exist, read_search_terms,
                                 term_to_folder_name, project_name, read_html_as_string,
                                 read_json_file, save_json_file, json_map_file_name, create_files_if_not_exist,
                                 min_image_for_term, is_download, save_text_file, app_port, app_host, use_debug_mode,
-                                use_reloader)
+                                use_reloader, get_thumbnail, get_image_url)
 from utils.pixabay_utils import get_image_from_pixabay, convert_pixabay_image_to_json, download_pixabay_images, \
     download_pixabay_images_from_json
 from utils.unsplash_utils import download_unsplash_images, convert_unsplash_image_to_json, get_image_from_unsplash, \
@@ -27,6 +29,7 @@ create_folders_if_not_exist([
     f"assets/{project_name}/image_files",
     f"assets/{project_name}/json_files",
     f"assets/{project_name}/video_files",
+    f"assets/{project_name}/zip_files"
 ])
 
 create_files_if_not_exist([
@@ -57,12 +60,14 @@ TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
 ERROR_PAGE_HTML = read_html_as_string("templates/error_page.html")
 SETTINGS_PAGE_HTML = read_html_as_string("templates/settings_page.html")
 HOME_PAGE_HTML = read_html_as_string("templates/home_page.html")
+GALLERY_PAGE_HTML = read_html_as_string("templates/gallery_page.html")
 
 pages = [
     {'name': 'home', 'route': '/'},
     {'name': 'settings', 'route': '/settings'},
     {'name': 'setup', 'route': '/setup'},
-    {'name': 'review', 'route': '/review'}
+    {'name': 'review', 'route': '/review'},
+    {'name': 'gallery', 'route': '/gallery'},
 ]
 
 
@@ -321,6 +326,20 @@ def setup():
     )
 
 
+@app.route('/gallery')
+def gallery():
+    try:
+        gallery_data = read_json_file(json_file_path)
+    except (FileNotFoundError, json.JSONDecodeError):
+        gallery_data = {}
+
+    return render_template_string(GALLERY_PAGE_HTML,
+                                  gallery_data=gallery_data,
+                                  project_name=project_name,
+                                  get_url_func=get_image_url,
+                                  get_thumb_func=get_thumbnail)
+
+
 @app.route("/<int:idx>")
 def index_by_idx(idx):
     idx = int(idx) - 1
@@ -352,6 +371,47 @@ def download_api_images():
         download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files/flickr")
 
     return redirect(url_for("review"))
+
+
+@app.route('/delete-image', methods=['POST'])
+def delete_image():
+    term = request.form.get('term')
+    image_id = request.form.get('imageID')
+    api_type = request.form.get('apiType')
+    extension = request.form.get('extension', 'jpg')
+    full_file_path = f"assets/{project_name}/image_files/{api_type}/{term}/{image_id}.{extension}"
+
+    if os.path.exists(full_file_path):
+        os.remove(full_file_path)
+
+    try:
+        image_list = read_json_file(json_file_path)
+        images = image_list.get(term, [])
+        image = next((img for img in images
+                      if str(img.get('id')) == str(image_id)
+                      and img.get('apiType') == api_type), None)
+        if image:
+            images.remove(image)
+            image_list[term] = images
+            save_json_file(json_file_path, image_list)
+
+    except Exception as e:
+        print(f"Delete Error: {e}")
+
+    return redirect(url_for('gallery'))
+
+
+@app.route('/download-zip')
+def download_zip():
+    source_dir = f"assets/{project_name}"
+    zip_filename = f"{project_name}_assets"
+    zip_path = f"assets/{zip_filename}"
+
+    if os.path.exists(source_dir):
+        shutil.make_archive(zip_path, 'zip', source_dir)
+        return send_file(f"{zip_path}.zip", as_attachment=True)
+    else:
+        return redirect(url_for("gallery"))
 
 
 @app.context_processor

@@ -13,6 +13,7 @@ unsplash_api_key = os.getenv('UNSPLASH_API_KEY')
 if not unsplash_api_key:
     raise EnvironmentError(
         "Environment variable `UNSPLASH_API_KEY` is not set. Set it in the environment or in a `.env` file.")
+max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
 
 
 @dataclass
@@ -82,6 +83,12 @@ def remove_id_from_img_url(url: str) -> str:
     else:
         parts = url.split('&ixid')
     return parts[0] if parts else url
+
+
+def get_extension_from_url(url: str) -> str:
+    if 'fm=' in url:
+        return url.split('fm=')[1].split('&')[0]
+    return 'jpg'
 
 
 def get_image_from_unsplash(query, limit=15) -> list[UnsplashImage]:
@@ -188,6 +195,7 @@ def convert_unsplash_image_to_json(img: UnsplashImage) -> dict:
             }
         },
         'current_user_collections': img.current_user_collections,
+        'extension': get_extension_from_url(img.urls.full or img.urls.regular or img.urls.small),
         'apiType': 'unsplash'
     }
 
@@ -197,14 +205,25 @@ def download_unsplash_images(image_list: list[UnsplashImage], folder_name: str):
         url = remove_id_from_img_url(img.urls.full)
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)
-        if content_kb <= int(os.getenv('MAX_KB_IMAGE_SIZE', '512')):
+
+        if content_kb > max_image_kb:
+            url = remove_id_from_img_url(img.urls.regular)
+            image_info = get_remote_size(url)
+            content_kb = image_info.get('kb_decimal', 0)
+
+        if content_kb > max_image_kb:
+            url = remove_id_from_img_url(img.urls.small)
+            image_info = get_remote_size(url)
+            content_kb = image_info.get('kb_decimal', 0)
+
+        if content_kb <= max_image_kb:
             try:
                 image_data = requests.get(url, timeout=30)
             except requests.RequestException as e:
                 print(f"Error downloading image {img.id} from Unsplash: {e}")
                 return
 
-            extension = url.find('fm=') != -1 and url.split('fm=')[1].split('&')[0] or 'jpg'
+            extension = get_extension_from_url(url)
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
             with open(image_path, 'wb') as file:
                 file.write(image_data.content)
