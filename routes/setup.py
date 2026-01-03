@@ -1,10 +1,11 @@
 from flask import Blueprint, request, redirect, url_for, render_template_string
 
 from core.state import search_file_path, update_search_terms, search_terms
-from utils.common_utils import read_html_as_string, save_text_file, project_name
+from utils.common_utils import read_html_as_string, save_text_file, project_name, read_search_terms
 
 setup_bp = Blueprint('setup', __name__)
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
+txt_terms = read_search_terms(search_file_path, [])
 
 
 @setup_bp.route("/setup", methods=['GET', 'POST'])
@@ -18,5 +19,5 @@ def index():
     return render_template_string(
         TXT_SETUP_PAGE_HTML,
         project_name=project_name,
-        terms="\n".join(search_terms)
+        terms="\n".join(txt_terms)
     )
