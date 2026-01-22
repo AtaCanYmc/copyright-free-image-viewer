@@ -36,4 +36,5 @@ def setup_custom_logger(name):
     return custom_logger
 
 
-logger = setup_custom_logger(f"{project_name}_logger")
+if __name__ != '__main__':
+    logger = setup_custom_logger(f"{project_name}_logger")

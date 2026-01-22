@@ -2,10 +2,11 @@ import os
 from typing import Any
 
 from utils.common_utils import (project_name, json_map_file_name, read_json_file,
-                                save_json_file, min_image_for_term, read_search_terms)
+                                save_json_file, min_image_for_term, read_search_terms, json_base_file_name)
 
 search_file_path = f"assets/{project_name}/search.txt"
 json_file_path = f"assets/{project_name}/json_files/{json_map_file_name}.json"
+base_json_file_path = f"assets/{project_name}/json_files/{json_base_file_name}.json"
 
 json_map = read_json_file(json_file_path)
 removed_keys = [key for key in json_map.keys() if len(json_map.get(key)) >= min_image_for_term] if json_map else []

@@ -2,6 +2,7 @@ import json
 import os
 from flask import Blueprint, request, redirect, url_for, render_template_string
 from core.state import json_file_path
+from utils.base_image_utils import save_base_images
 from utils.common_utils import project_name, read_json_file, save_json_file, get_image_url, get_thumbnail, \
     read_html_as_string, get_project_folder_as_zip
 from utils.log_utils import logger
@@ -55,6 +56,7 @@ def delete_image():
 @gallery_bp.route('/download-zip')
 def download_zip():
     try:
+        save_base_images()
         return get_project_folder_as_zip()
     except Exception as e:
         logger.error(f"Error creating zip file: {e}")

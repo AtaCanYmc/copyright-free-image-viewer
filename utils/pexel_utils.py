@@ -3,6 +3,7 @@ from pexels_api import API
 import os
 import requests
 from pexels_api.tools import Photo
+
 from utils.common_utils import get_remote_size, read_json_file, create_folders_if_not_exist
 from utils.log_utils import logger
 
