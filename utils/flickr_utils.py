@@ -20,6 +20,7 @@ class FlickerImage:
     id: str
     url: str
     hi_res_url: str
+    preview: str
     asset_path: str
     base64_data: str
 
@@ -61,7 +62,8 @@ def get_image_from_flickr(query, limit=15) -> list[FlickerImage]:
                 url=f"https:{src}",
                 hi_res_url=f"https:{hi_res}",
                 asset_path=f"{term_to_folder_name(query)}/{img_id}.jpg",
-                base64_data=convert_image_to_base64(f"https:{hi_res}")
+                base64_data=convert_image_to_base64(f"https:{hi_res}"),
+                preview=''
             ))
 
     return images[:limit]

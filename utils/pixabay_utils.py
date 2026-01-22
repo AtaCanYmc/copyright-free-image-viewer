@@ -68,34 +68,38 @@ def get_image_from_pixabay(term, page_idx=1, results_per_page=15) -> list[Pixaba
         raise Exception(f"Pixabay API error: {data['error']}")
     image_list = []
     for item in data.get('hits', []):
-        img = PixabayImage(
-            id=item['id'],
-            pageURL=item['pageURL'],
-            type=item['type'],
-            tags=item['tags'],
-            previewURL=item['previewURL'],
-            previewWidth=item['previewWidth'],
-            previewHeight=item['previewHeight'],
-            webformatURL=item['webformatURL'],
-            webformatWidth=item['webformatWidth'],
-            webformatHeight=item['webformatHeight'],
-            largeImageURL=item['largeImageURL'],
-            imageWidth=item['imageWidth'],
-            imageHeight=item['imageHeight'],
-            imageSize=item['imageSize'],
-            views=item['views'],
-            downloads=item['downloads'],
-            likes=item['likes'],
-            comments=item['comments'],
-            user_id=item['user_id'],
-            user=item['user'],
-            userImageURL=item['userImageURL']
-        )
+        img = convert_json_to_pixabay_image(item)
         image_list.append(img)
     return image_list
 
 
-def refetch_pixabay_image(id: int) -> Optional[PixabayImage]:
+def convert_json_to_pixabay_image(item: dict) -> PixabayImage:
+    return PixabayImage(
+        id=item['id'],
+        pageURL=item['pageURL'],
+        type=item['type'],
+        tags=item['tags'],
+        previewURL=item['previewURL'],
+        previewWidth=item['previewWidth'],
+        previewHeight=item['previewHeight'],
+        webformatURL=item['webformatURL'],
+        webformatWidth=item['webformatWidth'],
+        webformatHeight=item['webformatHeight'],
+        largeImageURL=item['largeImageURL'],
+        imageWidth=item['imageWidth'],
+        imageHeight=item['imageHeight'],
+        imageSize=item['imageSize'],
+        views=item['views'],
+        downloads=item['downloads'],
+        likes=item['likes'],
+        comments=item['comments'],
+        user_id=item['user_id'],
+        user=item['user'],
+        userImageURL=item['userImageURL']
+    )
+
+
+def refetch_pixabay_image(image_id: int) -> Optional[PixabayImage]:
     """
     Pixabay API'sini kullanarak belirli bir ID'ye sahip görselin
     tüm güncel detaylarını çeker ve PixabayImage nesnesi olarak döner.
@@ -103,13 +107,14 @@ def refetch_pixabay_image(id: int) -> Optional[PixabayImage]:
     url = pixabay_api_url
     params = {
         'key': pixabay_api_key,
-        'id': id
+        'id': image_id
     }
 
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
+        print(data)
 
         # 'hits' listesinde eleman var mı kontrol edelim
         if data.get("hits") and len(data["hits"]) > 0:
@@ -117,7 +122,7 @@ def refetch_pixabay_image(id: int) -> Optional[PixabayImage]:
 
             # Dictionary verisini PixabayImage sınıfına unpack ederek gönderiyoruz
             # Not: Sınıfınızdaki alan isimleri API yanıtındaki isimlerle birebir aynıdır.
-            return PixabayImage(**image_data)
+            return convert_json_to_pixabay_image(image_data)
 
         return None
 
@@ -140,8 +145,11 @@ def download_pixabay_image(img: PixabayImage, folder_name: str, refetch: bool = 
     content_kb = image_info.get('kb_decimal', 0)
     if content_kb <= max_image_kb:
         try:
-            image_data = requests.get(url, timeout=30)
-        except requests.RequestException as e:
+            response = requests.get(url, timeout=30)
+            content_str = response.text.lower()
+            if 'invalid' in content_str or 'expired' in content_str:
+                raise ValueError("Görsel bağlantısı geçersiz veya süresi dolmuş.")
+        except Exception as e:
             print(f"Error downloading image {img.id} from Pixabay: {e}")
             if not refetch:
                 new_img = refetch_pixabay_image(img.id)
@@ -152,7 +160,7 @@ def download_pixabay_image(img: PixabayImage, folder_name: str, refetch: bool = 
         extension = get_extension_from_url(url)
         image_path = os.path.join(folder_name, f"{img.id}.{extension}")
         with open(image_path, 'wb') as file:
-            file.write(image_data.content)
+            file.write(response.content)
         print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
     else:
         print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
@@ -186,36 +194,11 @@ def convert_pixabay_image_to_json(img: PixabayImage) -> dict:
     }
 
 
-def convert_json_to_pixabay_image(img_data: dict) -> PixabayImage:
-    return PixabayImage(
-        id=img_data['id'],
-        pageURL=img_data['pageURL'],
-        type=img_data['type'],
-        tags=img_data['tags'],
-        previewURL=img_data['previewURL'],
-        previewWidth=img_data['previewWidth'],
-        previewHeight=img_data['previewHeight'],
-        webformatURL=img_data['webformatURL'],
-        webformatWidth=img_data['webformatWidth'],
-        webformatHeight=img_data['webformatHeight'],
-        largeImageURL=img_data['largeImageURL'],
-        imageWidth=img_data['imageWidth'],
-        imageHeight=img_data['imageHeight'],
-        imageSize=img_data['imageSize'],
-        views=img_data['views'],
-        downloads=img_data['downloads'],
-        likes=img_data['likes'],
-        comments=img_data['comments'],
-        user_id=img_data['user_id'],
-        user=img_data['user'],
-        userImageURL=img_data['userImageURL']
-    )
-
-
 def download_pixabay_images_from_json(json_file: str, folder_name: str):
     json_data = read_json_file(json_file)
 
     for term, images in json_data.items():
         pixabay_images = [convert_json_to_pixabay_image(img_data) for img_data in images if
                           img_data.get('apiType') == 'pixabay']
-        download_pixabay_images(pixabay_images, folder_name)
+        folder_path = os.path.join(folder_name, term)
+        download_pixabay_images(pixabay_images, folder_path)

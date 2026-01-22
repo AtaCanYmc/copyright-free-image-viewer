@@ -242,7 +242,9 @@
                         </svg>
                         Download all images
                     </button>
-                    <br/>
+                </form>
+                <br/>
+                <form method="post" action="{{ url_for('review.download_api_images') }}">
                     <button type="submit"
                             class="w-full py-3 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition shadow-md flex items-center justify-center gap-2 text-sm lowercase">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"

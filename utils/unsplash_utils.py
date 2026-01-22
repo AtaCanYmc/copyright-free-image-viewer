@@ -279,7 +279,8 @@ def download_unsplash_images_from_json(json_file: str, folder_name: str):
     for term, images in json_data.items():
         image_list = [convert_json_to_unsplash_image(img_data) for img_data in images if
                       img_data.get('apiType') == 'unsplash']
-        download_unsplash_images(image_list, folder_name)
+        folder_path = os.path.join(folder_name, term)
+        download_unsplash_images(image_list, folder_path)
         time.sleep(10)
 
 
