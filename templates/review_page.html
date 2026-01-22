@@ -231,7 +231,18 @@
 
             <div class="bg-indigo-900 p-6 rounded-2xl shadow-lg">
                 <h3 class="text-sm font-bold text-indigo-300 uppercase tracking-widest mb-4">Bulk Actions</h3>
-                <form method="post" action="{{ url_for('review.download_api_images') }}">
+                <form method="post" action="{{ url_for('review.download_all_images') }}">
+                    <button type="submit"
+                            class="w-full py-3 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition shadow-md flex items-center justify-center gap-2 text-sm lowercase">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" x2="12" y1="15" y2="3"/>
+                        </svg>
+                        Download all images
+                    </button>
+                    <br/>
                     <button type="submit"
                             class="w-full py-3 bg-white text-indigo-900 rounded-xl font-bold hover:bg-indigo-50 transition shadow-md flex items-center justify-center gap-2 text-sm lowercase">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
@@ -244,7 +255,6 @@
                     </button>
                 </form>
             </div>
-
         </div>
     </div>
     {% endif %}

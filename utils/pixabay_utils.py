@@ -1,4 +1,6 @@
 import os
+from typing import Optional
+
 import requests
 from dotenv import load_dotenv
 from dataclasses import dataclass
@@ -93,25 +95,67 @@ def get_image_from_pixabay(term, page_idx=1, results_per_page=15) -> list[Pixaba
     return image_list
 
 
+def refetch_pixabay_image(id: int) -> Optional[PixabayImage]:
+    """
+    Pixabay API'sini kullanarak belirli bir ID'ye sahip görselin
+    tüm güncel detaylarını çeker ve PixabayImage nesnesi olarak döner.
+    """
+    url = pixabay_api_url
+    params = {
+        'key': pixabay_api_key,
+        'id': id
+    }
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        # 'hits' listesinde eleman var mı kontrol edelim
+        if data.get("hits") and len(data["hits"]) > 0:
+            image_data = data["hits"][0]
+
+            # Dictionary verisini PixabayImage sınıfına unpack ederek gönderiyoruz
+            # Not: Sınıfınızdaki alan isimleri API yanıtındaki isimlerle birebir aynıdır.
+            return PixabayImage(**image_data)
+
+        return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"Bağlantı hatası: {e}")
+        return None
+    except TypeError as e:
+        print(f"Veri eşleştirme hatası (Sınıf yapısı API ile uyumsuz olabilir): {e}")
+        return None
+
+
 def download_pixabay_images(image_list: list[PixabayImage], folder_name: str):
     for img in image_list:
-        url = img.largeImageURL
-        image_info = get_remote_size(url)
-        content_kb = image_info.get('kb_decimal', 0)
-        if content_kb <= max_image_kb:
-            try:
-                image_data = requests.get(url, timeout=30)
-            except requests.RequestException as e:
-                print(f"Error downloading image {img.id} from Pixabay: {e}")
-                return
+        download_pixabay_image(img, folder_name)
 
-            extension = get_extension_from_url(url)
-            image_path = os.path.join(folder_name, f"{img.id}.{extension}")
-            with open(image_path, 'wb') as file:
-                file.write(image_data.content)
-            print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
-        else:
-            print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
+
+def download_pixabay_image(img: PixabayImage, folder_name: str, refetch: bool = False):
+    url = img.largeImageURL
+    image_info = get_remote_size(url)
+    content_kb = image_info.get('kb_decimal', 0)
+    if content_kb <= max_image_kb:
+        try:
+            image_data = requests.get(url, timeout=30)
+        except requests.RequestException as e:
+            print(f"Error downloading image {img.id} from Pixabay: {e}")
+            if not refetch:
+                new_img = refetch_pixabay_image(img.id)
+                if new_img:
+                    download_pixabay_image(new_img, folder_name, refetch=True)
+            return
+
+        extension = get_extension_from_url(url)
+        image_path = os.path.join(folder_name, f"{img.id}.{extension}")
+        with open(image_path, 'wb') as file:
+            file.write(image_data.content)
+        print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
+    else:
+        print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
 
 
 def convert_pixabay_image_to_json(img: PixabayImage) -> dict:

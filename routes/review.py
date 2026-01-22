@@ -116,7 +116,7 @@ def download_image(photo: Any, term: str, force_download=False):
         return
 
     c_api = state["current_api"]
-    folder = f"assets/{project_name}/image_files/{c_api}/{term_to_folder_name(term)}"
+    folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
     os.makedirs(folder, exist_ok=True)
 
     if c_api == 'pixabay':
@@ -253,19 +253,27 @@ def decision():
     return decision_execution(action)
 
 
+@review_bp.route("/download-all-images", methods=["POST"])
+def download_all_images():
+    create_folders_if_not_exist([f"assets/{project_name}/image_files"])
+    download_pexels_images_from_json(json_file_path, f"assets/{project_name}/image_files")
+    download_pixabay_images_from_json(json_file_path, f"assets/{project_name}/image_files")
+    download_unsplash_images_from_json(json_file_path, f"assets/{project_name}/image_files")
+    download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files")
+    return redirect(url_for("review.index"))
+
+
 @review_bp.route("/download-api-images", methods=["POST"])
 def download_api_images():
+    create_folders_if_not_exist([f"assets/{project_name}/image_files"])
+
     if state["current_api"] == 'pexels':
-        create_folders_if_not_exist([f"assets/{project_name}/image_files/pexels"])
-        download_pexels_images_from_json(json_file_path, f"assets/{project_name}/image_files/pexels")
+        download_pexels_images_from_json(json_file_path, f"assets/{project_name}/image_files")
     elif state["current_api"] == 'pixabay':
-        create_folders_if_not_exist([f"assets/{project_name}/image_files/pixabay"])
-        download_pixabay_images_from_json(json_file_path, f"assets/{project_name}/image_files/pixabay")
+        download_pixabay_images_from_json(json_file_path, f"assets/{project_name}/image_files")
     elif state["current_api"] == 'unsplash':
-        create_folders_if_not_exist([f"assets/{project_name}/image_files/unsplash"])
-        download_unsplash_images_from_json(json_file_path, f"assets/{project_name}/image_files/unsplash")
+        download_unsplash_images_from_json(json_file_path, f"assets/{project_name}/image_files")
     elif state["current_api"] == 'flickr':
-        create_folders_if_not_exist([f"assets/{project_name}/image_files/flickr"])
-        download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files/flickr")
+        download_flicker_images_from_json(json_file_path, f"assets/{project_name}/image_files")
 
     return redirect(url_for("review.index"))
