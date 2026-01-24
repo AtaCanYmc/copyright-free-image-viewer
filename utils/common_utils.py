@@ -116,6 +116,19 @@ def delete_files_if_exist(folder_path: str):
                 os.remove(file_path)
 
 
+def get_directory_tree(path):
+    d = {'name': os.path.basename(path), 'type': 'folder', 'children': []}
+    try:
+        for entry in os.scandir(path):
+            if entry.is_dir():
+                d['children'].append(get_directory_tree(entry.path))
+            else:
+                d['children'].append({'name': entry.name, 'type': 'file'})
+    except PermissionError:
+        pass
+    return d
+
+
 def get_project_folder_as_zip() -> tuple[Response, int]:
     source_dir = f"assets/{project_name}"
     zip_filename = f"{project_name}_assets"

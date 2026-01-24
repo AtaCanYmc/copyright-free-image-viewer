@@ -4,6 +4,7 @@ from threading import Timer
 from flask import Flask, render_template_string
 
 from core.state import search_terms, get_state_value
+from routes.explorer import explorer_bp
 from routes.gallery import gallery_bp
 from routes.review import review_bp
 from routes.settings import settings_bp
@@ -43,6 +44,7 @@ pages = [
     {'name': 'setup', 'route': '/setup'},
     {'name': 'review', 'route': '/review'},
     {'name': 'gallery', 'route': '/gallery'},
+    {'name': 'explorer', 'route': '/explorer'}
 ]
 
 app = Flask(__name__)
@@ -50,6 +52,7 @@ app.register_blueprint(review_bp)
 app.register_blueprint(gallery_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(setup_bp)
+app.register_blueprint(explorer_bp)
 
 
 @app.route('/')

@@ -115,7 +115,8 @@ def refetch_pixabay_image(image_id: int) -> Optional[PixabayImage]:
 
         if data.get("hits") and len(data["hits"]) > 0:
             image_data = data["hits"][0]
-            change_image_in_json(json_file_path, image_id, image_data)
+            pix_img = convert_json_to_pixabay_image(image_data)
+            change_image_in_json(json_file_path, image_id, convert_pixabay_image_to_json(pix_img))
             return convert_json_to_pixabay_image(image_data)
 
         return None
