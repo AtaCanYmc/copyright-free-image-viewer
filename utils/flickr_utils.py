@@ -9,6 +9,7 @@ from io import BytesIO
 import json
 
 from utils.common_utils import get_remote_size, term_to_folder_name, read_json_file
+from utils.log_utils import logger
 
 load_dotenv()
 
@@ -40,7 +41,7 @@ def get_image_from_flickr(query, limit=15) -> list[FlickerImage]:
         r = requests.get(scrapper_url, params=params, headers=HEADERS, timeout=30)
         r.raise_for_status()
     except requests.RequestException as e:
-        print(f"Error fetching images from Flickr for query '{query}': {e}")
+        logger.error(f"Error fetching images from Flickr for query '{query}': {e}")
         return []
 
     soup = BeautifulSoup(r.text, "html.parser")
@@ -89,15 +90,15 @@ def download_flickr_images(image_list: list[FlickerImage], folder_name: str):
             try:
                 image_data = requests.get(url, timeout=30)
             except requests.RequestException as e:
-                print(f"Error downloading image {img.id} from Flickr: {e}")
+                logger.error(f"Error downloading image {img.id} from Flickr: {e}")
                 return
             extension = url.split('.')[-1]
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
             with open(image_path, 'wb') as file:
                 file.write(image_data.content)
-            print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
+            logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
         else:
-            print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
+            logger.info(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
 
 
 def convert_image_to_base64(url: str) -> str:
@@ -117,7 +118,7 @@ def fix_asset_paths_of_json(json_file: str):
 
             if img_data.get('assetPath', None) is None:
                 img_data['assetPath'] = f"{term_to_folder_name(term)}/{img_data['id']}.jpg"
-                print(f"Fixed assetPath for {img_data['id']} to {img_data['assetPath']}")
+                logger.info(f"Fixed assetPath for {img_data['id']} to {img_data['assetPath']}")
 
     with open(json_file, 'w') as file:
         json.dump(image_list, file, indent=4)
@@ -141,10 +142,11 @@ def download_flicker_images_from_json(json_file: str, folder_name: str):
                 url=img_data['url'],
                 hi_res_url=img_data['highResUrl'],
                 asset_path=img_data.get('assetPath', ''),
-                base64_data=img_data.get('base64Data', '')
+                base64_data=img_data.get('base64Data', ''),
+                preview=''
             )
 
             if img_data.get('assetPath', None) is None:
-                print(f"Error at {img_data['id']} path is None")
+                logger.error(f"Error at {img_data['id']} path is None")
 
             download_flickr_images([img], term_folder)

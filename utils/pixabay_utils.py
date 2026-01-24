@@ -5,7 +5,9 @@ import requests
 from dotenv import load_dotenv
 from dataclasses import dataclass
 
-from utils.common_utils import get_remote_size, read_json_file
+from core.state import json_file_path
+from utils.common_utils import get_remote_size, read_json_file, create_folders_if_not_exist, change_image_in_json
+from utils.log_utils import logger
 
 load_dotenv()
 
@@ -60,7 +62,7 @@ def get_image_from_pixabay(term, page_idx=1, results_per_page=15) -> list[Pixaba
         response = requests.get(pixabay_api_url, params=params, timeout=30)
         response.raise_for_status()
     except requests.RequestException as e:
-        print(f"Error fetching images from Pixabay for term '{term}': {e}")
+        logger.error(f"Error fetching images from Pixabay for term '{term}': {e}")
         return []
 
     data = response.json()
@@ -100,10 +102,6 @@ def convert_json_to_pixabay_image(item: dict) -> PixabayImage:
 
 
 def refetch_pixabay_image(image_id: int) -> Optional[PixabayImage]:
-    """
-    Pixabay API'sini kullanarak belirli bir ID'ye sahip görselin
-    tüm güncel detaylarını çeker ve PixabayImage nesnesi olarak döner.
-    """
     url = pixabay_api_url
     params = {
         'key': pixabay_api_key,
@@ -114,23 +112,19 @@ def refetch_pixabay_image(image_id: int) -> Optional[PixabayImage]:
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        print(data)
 
-        # 'hits' listesinde eleman var mı kontrol edelim
         if data.get("hits") and len(data["hits"]) > 0:
             image_data = data["hits"][0]
-
-            # Dictionary verisini PixabayImage sınıfına unpack ederek gönderiyoruz
-            # Not: Sınıfınızdaki alan isimleri API yanıtındaki isimlerle birebir aynıdır.
+            change_image_in_json(json_file_path, image_id, image_data)
             return convert_json_to_pixabay_image(image_data)
 
         return None
 
     except requests.exceptions.RequestException as e:
-        print(f"Bağlantı hatası: {e}")
+        logger.error(f"Connection error: {e}")
         return None
     except TypeError as e:
-        print(f"Veri eşleştirme hatası (Sınıf yapısı API ile uyumsuz olabilir): {e}")
+        logger.error(f"Veri eşleştirme hatası (Sınıf yapısı API ile uyumsuz olabilir): {e}")
         return None
 
 
@@ -148,9 +142,9 @@ def download_pixabay_image(img: PixabayImage, folder_name: str, refetch: bool = 
             response = requests.get(url, timeout=30)
             content_str = response.text.lower()
             if 'invalid' in content_str or 'expired' in content_str:
-                raise ValueError("Görsel bağlantısı geçersiz veya süresi dolmuş.")
+                raise ValueError(f"This URL is invalid or has expired: {url}")
         except Exception as e:
-            print(f"Error downloading image {img.id} from Pixabay: {e}")
+            logger.error(f"Error downloading image {img.id} from Pixabay: {e}")
             if not refetch:
                 new_img = refetch_pixabay_image(img.id)
                 if new_img:
@@ -159,11 +153,12 @@ def download_pixabay_image(img: PixabayImage, folder_name: str, refetch: bool = 
 
         extension = get_extension_from_url(url)
         image_path = os.path.join(folder_name, f"{img.id}.{extension}")
+        create_folders_if_not_exist([folder_name])
         with open(image_path, 'wb') as file:
             file.write(response.content)
-        print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
+        logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
     else:
-        print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
+        logger.info(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
 
 
 def convert_pixabay_image_to_json(img: PixabayImage) -> dict:

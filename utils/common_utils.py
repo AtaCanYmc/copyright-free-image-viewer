@@ -31,11 +31,12 @@ def get_remote_size(url: str) -> dict:
             size_bytes = int(cl)
             return {
                 'bytes': size_bytes,
-                'kb_decimal': size_bytes / 1000,
-                'kb_binary': size_bytes / 1024,
+                'kb_decimal': size_bytes / 1000 if size_bytes > 0 else 0,
+                'kb_binary': size_bytes / 1024 if size_bytes > 0 else 0,
                 'source': 'Content-Length header'
             }
-    except Exception:
+    except Exception as e:
+        logger.error(f'Failed to get size of {url}. {e}')
         pass
 
     size = 0
@@ -45,8 +46,8 @@ def get_remote_size(url: str) -> dict:
             for chunk in r.iter_content(8192):
                 if chunk:
                     size += len(chunk)
-    except Exception:
-        print(f"Could not determine size for URL: {url}")  # Optional: log the error
+    except Exception as e:
+        logger.error(f"Could not determine size for URL: {url}. {e}")
         pass
 
     return {
@@ -152,3 +153,24 @@ def get_thumbnail(img: dict):
     elif img.get('apiType') == 'flickr':
         return img.get('url')
     return '#'
+
+
+def change_image_in_json(json_path, img_id, new_img):
+    json_data = read_json_file(json_path)
+    updated = False
+
+    for term, images in json_data.items():
+        for i, image in enumerate(images):
+            if image.get('id') == img_id:
+                images[i] = new_img
+                updated = True
+                logger.info(f"ID: {img_id} updated (in {term}).")
+                break
+
+        if updated:
+            break
+
+    if updated:
+        save_json_file(json_path, json_data)
+    else:
+        logger.error(f"ID: {img_id} not found on {json_path}")

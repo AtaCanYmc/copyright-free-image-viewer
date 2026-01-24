@@ -5,7 +5,7 @@ from typing import Optional, List
 import requests
 from dotenv import load_dotenv
 
-from utils.common_utils import get_remote_size, read_json_file
+from utils.common_utils import get_remote_size, read_json_file, create_folders_if_not_exist
 from utils.log_utils import logger
 
 load_dotenv()
@@ -226,16 +226,17 @@ def download_unsplash_images(image_list: list[UnsplashImage], folder_name: str):
             try:
                 image_data = requests.get(url, timeout=30)
             except requests.RequestException as e:
-                print(f"Error downloading image {img.id} from Unsplash: {e}")
+                logger.error(f"Error downloading image {img.id} from Unsplash: {e}")
                 return
 
             extension = get_extension_from_url(url)
             image_path = os.path.join(folder_name, f"{img.id}.{extension}")
+            create_folders_if_not_exist([folder_name])
             with open(image_path, 'wb') as file:
                 file.write(image_data.content)
-            print(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
+            logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
         else:
-            print(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
+            logger.info(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
 
 
 def convert_json_to_unsplash_image(img_data: dict) -> UnsplashImage:
