@@ -1,0 +1,54 @@
+Renault Austral
+Hyundai Accent Era
+Kia Rio
+Kia Cerato
+Opel Insignia
+Opel Grandland
+Opel Crossland
+Opel Vectra
+Opel Tigra
+Opel Zafira
+Nissan Micra
+Nissan Pulsar
+Nissan Leaf
+Volvo S60
+Volvo V40
+Volvo V90
+Volvo XC40
+Volvo C40
+Volvo 850
+Mazda RX-8
+Mazda 6
+Mazda CX-30
+Mazda 323
+Mazda 626
+Mazda BT-50
+Porsche Cayenne
+Porsche Panamera
+Porsche Taycan
+Porsche Macan
+Porsche Boxster
+Porsche Cayman
+Porsche 918 Spyder
+Porsche 356
+Ferrari F40
+Citroen C4
+Citroen C5 Aircross
+Citroen Ami
+Mitsubishi ASX
+Subaru XV
+Subaru BRZ
+Suzuki Alto
+Suzuki Ignis
+Alfa Romeo Giulietta
+Alfa Romeo Tonale
+Alfa Romeo Brera
+Skoda Kodiaq
+Seat Ateca
+Seat Arona
+Seat Tarraco
+Land Rover Evoque
+Land Rover Velar
+Jeep Compass
+Togg T10X
+Tofaş Kartal
