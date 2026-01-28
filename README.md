@@ -46,6 +46,7 @@ Once started, visit http://localhost:8080 in your browser.
 ### 4. Manual Installation
 ```bash
     pip install -r requirements.txt
+    python -m pytest  # Optional: Run tests
     python app.py
 ```
 

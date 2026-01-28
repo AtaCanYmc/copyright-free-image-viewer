@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional
+import json
+import os
 
-from core.state import json_file_path, base_json_file_path
-from utils.common_utils import read_json_file, save_json_file
-
+# import from db instead of json file
+from core.db import get_db
+from core.models import Image, SearchTerm, ImageStatus
+from utils.common_utils import save_json_file, project_name
 
 @dataclass
 class BaseImage:
@@ -16,55 +19,23 @@ class BaseImage:
     extension: Optional[str] = None
 
 
-def convert_pexels_photo_to_base(img: dict) -> BaseImage:
+def convert_db_image_to_base(img: Image) -> BaseImage:
+    # Logic to map DB columns to BaseImage
+    # This might need some reconstruction of URLs if they aren't fully stored
     return BaseImage(
-        id=img.get('id'),
-        api='pexels',
-        original=img.get('large'),
-        thumb=img.get('small'),
-        preview=img.get('url'),
-        extension=img.get('extension'),
-        refresh=f'https://api.pexels.com/v1/photos/{img.get("id")}'
+        id=img.source_id,
+        api=img.source_api,
+        original=img.url_large,
+        thumb=img.url_thumbnail or img.url_large,
+        preview=img.url_large,
+        # extension could be derived
+        extension="jpg" # Default or derive
     )
 
-
-def convert_pixabay_photo_to_base(img: dict) -> BaseImage:
-    return BaseImage(
-        id=str(img.get('id')),
-        api='pixabay',
-        original=img.get('largeImageURL'),
-        thumb=img.get('webformatURL'),
-        preview=img.get('previewURL'),
-        refresh=f'https://pixabay.com/api/?id=${img.get("id")}&key=' + '{0}',
-        extension=img.get('extension')
-    )
-
-
-def convert_unsplash_photo_to_base(img: dict) -> BaseImage:
-    return BaseImage(
-        id=img.get('id'),
-        api='unsplash',
-        original=img.get('links').get('download'),
-        thumb=img.get('links').get('download'),
-        preview=img.get('links').get('self'),
-        refresh=f'https://api.unsplash.com/photos/${img.get("id")}',
-        extension=img.get('extension')
-    )
-
-
-def get_base_images():
-    mixed_json = read_json_file(json_file_path)
-    base_images = []
-    for term, images in mixed_json.items():
-        for image in images:
-            if image.get('apiType') == 'pexels':
-                base_images.append(convert_pexels_photo_to_base(image))
-            if image.get('apiType') == 'pixabay':
-                base_images.append(convert_pixabay_photo_to_base(image))
-            if image.get('apiType') == 'unsplash':
-                base_images.append(convert_unsplash_photo_to_base(image))
-    return base_images
-
+def get_base_images_from_db():
+    db = next(get_db())
+    images = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).all()
+    return [convert_db_image_to_base(img) for img in images]
 
 def base_image_to_json(image: BaseImage):
     return {
@@ -77,9 +48,10 @@ def base_image_to_json(image: BaseImage):
         'extension': image.extension
     }
 
-
 def save_base_images():
-    images = get_base_images()
+    images = get_base_images_from_db()
     json_arr = [base_image_to_json(img) for img in images]
-    save_json_file(base_json_file_path, {'images': json_arr})
-
+    # We still save this JSON because it might be needed for the ZIP export
+    base_json_path = f"assets/{project_name}/json_files/base_images.json"
+    os.makedirs(os.path.dirname(base_json_path), exist_ok=True)
+    save_json_file(base_json_path, {'images': json_arr})
