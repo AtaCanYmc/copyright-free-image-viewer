@@ -26,7 +26,6 @@ class Image(Base):
     source_id = Column(String, index=True, nullable=False) # ID from the external API (Pexels, Pixabay etc.)
     source_api = Column(String, nullable=False) # 'pexels', 'pixabay', 'unsplash', 'flickr'
     
-    url_large = Column(String, nullable=True)
     url_original = Column(String, nullable=True)
     url_thumbnail = Column(String, nullable=True)
     

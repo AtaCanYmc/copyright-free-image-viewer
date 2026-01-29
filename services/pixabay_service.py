@@ -171,13 +171,13 @@ class PixabayService(ImageService):
             return
 
         img_id = str(getattr(img, 'id', 'unknown'))
-        url_large = getattr(img, "largeImageURL", None)
+        url_original = getattr(img, "largeImageURL", None)
         url_thumbnail = getattr(img, "previewURL", None)
 
         new_image = Image(
             source_id=img_id,
             source_api=api_source,
-            url_large=url_large,
+            url_original=url_original,
             url_thumbnail=url_thumbnail,
             status=ImageStatus.APPROVED.value,
             search_term_id=term_obj.id
