@@ -35,7 +35,6 @@ def index():
             'largeImageURL': img.url_large, # For Pixabay mainly, but used as fallback
             'large2x': img.url_large,       # For Pexels
             'original': img.url_original,
-            # Add other fields helper functions might need
             'src': {'original': img.url_large} # Mock for some helpers
         }
         gallery_data[term].append(img_dict)

@@ -1,11 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
-import json
 import os
-
-# import from db instead of json file
 from core.db import get_db
-from core.models import Image, SearchTerm, ImageStatus
+from core.models import Image, ImageStatus
 from utils.common_utils import save_json_file, project_name
 
 @dataclass

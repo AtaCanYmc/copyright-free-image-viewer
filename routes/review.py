@@ -25,6 +25,18 @@ review_bp = Blueprint('review', __name__)
 REVIEW_PAGE_HTML = read_html_as_string("templates/review_page.html")
 
 
+def get_service_by_api(api_type: str) -> ImageService:
+    if api_type == 'pexels':
+        return pexels_service
+    elif api_type == 'pixabay':
+        return pixabay_service
+    elif api_type == 'unsplash':
+        return unsplash_service
+    elif api_type == 'flickr':
+        return flickr_service
+    else:
+        raise ValueError(f"Unknown API type: {api_type}")
+
 def get_current_search_terms():
     db = next(get_db())
     return [t.term for t in db.query(SearchTerm).all()]
@@ -45,14 +57,8 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
     photos = []
 
     try:
-        if api_type == 'pexels':
-            photos = pexels_service.search_images(term, page=1, per_page=30)
-        elif api_type == 'pixabay':
-            photos = pixabay_service.search_images(term, page=1, per_page=30)
-        elif api_type == 'unsplash':
-            photos = unsplash_service.search_images(term, limit=30)
-        elif api_type == 'flickr':
-            photos = flickr_service.search_images(term, limit=30)
+        service = get_service_by_api(api_type)
+        photos = service.search_images(term, limit=30)
     except Exception as e:
         logger.error(f"Error fetching photos: {e}")
         photos = []
@@ -62,60 +68,8 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
 
 
 def add_image_to_db(term_str: str, img: Any, api_source: str):
-    db = next(get_db())
-    # Find term id
-    term_obj = db.query(SearchTerm).filter(SearchTerm.term == term_str).first()
-    if not term_obj:
-        logger.error(f"Term {term_str} not found in DB")
-        return
-
-    # Extract ID based on API
-    img_id = str(getattr(img, 'id', 'unknown'))
-    
-    # Check if exists
-    exists = db.query(Image).filter(
-        Image.source_id == img_id, 
-        Image.source_api == api_source
-    ).first()
-    
-    if exists:
-        return
-
-    # Extract URLs logic
-    url_large = None
-    url_original = None
-    url_thumbnail = None
-    
-    if api_source == 'pixabay':
-        url_large = getattr(img, 'largeImageURL', None)
-        url_thumbnail = getattr(img, 'previewURL', None)
-    elif api_source == 'pexels':
-        url_large = getattr(img, "large2x", None) or getattr(img, "original", None)
-        url_thumbnail = getattr(img, "tiny", None)
-    elif api_source == 'unsplash':
-        url_large = getattr(img.urls, "full", None) or getattr(img.urls, "regular", None)
-        # Remove params for cleaner URL if needed, but keeping them might be safer for access
-        from services.unsplash_service import remove_id_from_img_url
-        url_large = remove_id_from_img_url(url_large)
-        url_thumbnail = remove_id_from_img_url(getattr(img.urls, "thumb", None))
-    elif api_source == 'flickr':
-        url_large = getattr(img, 'hi_res_url', None) or getattr(img, 'url', None)
-        url_thumbnail = getattr(img, 'url', None)
-
-    # Fallback
-    if not url_large and hasattr(img, 'src') and isinstance(img.src, dict):
-        url_large = img.src.get("large2x") or img.src.get("original")
-
-    new_image = Image(
-        source_id=img_id,
-        source_api=api_source,
-        url_large=url_large,
-        url_thumbnail=url_thumbnail,
-        status=ImageStatus.APPROVED.value,
-        search_term_id=term_obj.id
-    )
-    db.add(new_image)
-    db.commit()
+    service = get_service_by_api(api_source)
+    service.add_image_to_db(term_str, img, api_source)
 
 
 def advance_after_action():

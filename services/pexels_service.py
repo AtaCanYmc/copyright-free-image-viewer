@@ -4,13 +4,14 @@ import requests
 from dotenv import load_dotenv
 from pexels_api import API
 from pexels_api.tools import Photo
-
+from core.db import get_db
+from core.models import Image, ImageStatus
 from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
 
 load_dotenv()
 
-class PexelsService:
+class PexelsService(ImageService):
     def __init__(self):
         self.api_key = os.getenv('PEXELS_API_KEY')
         if not self.api_key:
@@ -19,6 +20,7 @@ class PexelsService:
             self.api = API(self.api_key)
             
         self.max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
+
 
     def search_images(self, term: str, page: int = 1, per_page: int = 15) -> List[Photo]:
         if not self.api_key:
@@ -31,7 +33,8 @@ class PexelsService:
             logger.error(f"Error fetching images from Pexels for term '{term}': {e}")
             return []
 
-    def download_image(self, photo: Photo, folder_path: str) -> bool:
+
+    def find_download_url(self, photo: Photo) -> Optional[str, int]:
         url_list = [photo.original, photo.large2x, photo.large, photo.medium, photo.small]
         url_indx = 0
         content_kb = 0
@@ -46,10 +49,18 @@ class PexelsService:
             
         if url_indx >= len(url_list):
             logger.info(f"Skipped image {photo.id} (all sizes exceed {self.max_image_kb} KB)")
-            return False
+            return None, None
 
+        return url_list[url_indx], content_kb
+
+
+    def download_image(self, photo: Photo, folder_path: str) -> bool:
+        url, content_kb = self.find_download_url(photo)
+        if not url:
+            return False
+        
         try:
-            image_data = requests.get(url_list[url_indx], timeout=30)
+            image_data = requests.get(url, timeout=30)
         except requests.RequestException as e:
             logger.error(f"Error downloading image {photo.id} from Pexels: {e}")
             return False
@@ -62,3 +73,60 @@ class PexelsService:
 
         logger.info(f"Downloaded image {photo.id} to {image_path} ({content_kb:.2f} KB)")
         return True
+
+
+    def add_image_to_db(self, term_str: str, img: Any, api_source: str):
+        db = next(get_db())
+        term_obj = db.query(SearchTerm).filter(SearchTerm.term == term_str).first()
+
+        if not term_obj:
+            logger.error(f"Term {term_str} not found in DB")
+            return
+
+        img_id = str(getattr(img, 'id', 'unknown'))
+        url_large = getattr(img, "large2x", None) or getattr(img, "original", None)
+        url_thumbnail = getattr(img, "tiny", None)
+
+        new_image = Image(
+            source_id=img_id,
+            source_api=api_source,
+            url_large=url_large,
+            url_thumbnail=url_thumbnail,
+            status=ImageStatus.APPROVED.value,
+            search_term_id=term_obj.id
+        )
+        db.add(new_image)
+        db.commit()
+
+        image_path = os.path.join(folder_path, f"{photo.id}.{photo.extension}")
+        create_folders_if_not_exist([folder_path])
+        
+        with open(image_path, 'wb') as file:
+            file.write(image_data.content)
+
+        logger.info(f"Downloaded image {photo.id} to {image_path} ({content_kb:.2f} KB)")
+        return True
+
+
+    def add_image_to_db(self, term_str: str, img: Any, api_source: str):
+        db = next(get_db())
+        term_obj = db.query(SearchTerm).filter(SearchTerm.term == term_str).first()
+
+        if not term_obj:
+            logger.error(f"Term {term_str} not found in DB")
+            return
+
+        img_id = str(getattr(img, 'id', 'unknown'))
+        url_large = getattr(img, "large2x", None) or getattr(img, "original", None)
+        url_thumbnail = getattr(img, "tiny", None)
+
+        new_image = Image(
+            source_id=img_id,
+            source_api=api_source,
+            url_large=url_large,
+            url_thumbnail=url_thumbnail,
+            status=ImageStatus.APPROVED.value,
+            search_term_id=term_obj.id
+        )
+        db.add(new_image)
+        db.commit()

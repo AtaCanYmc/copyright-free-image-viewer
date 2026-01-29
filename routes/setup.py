@@ -1,12 +1,10 @@
 from flask import Blueprint, request, redirect, url_for, render_template_string
 from utils.common_utils import read_html_as_string, project_name
+from core.db import get_db
+from core.models import SearchTerm
 
 setup_bp = Blueprint('setup', __name__)
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
-
-
-from core.db import get_db
-from core.models import SearchTerm
 
 @setup_bp.route("/setup", methods=['GET', 'POST'])
 def index():

@@ -80,7 +80,7 @@ def get_extension_from_url(url: str) -> str:
     return 'jpg'
 
 
-class UnsplashService:
+class UnsplashService(ImageService):
     def __init__(self):
         self.api_key = os.getenv('UNSPLASH_API_KEY')
         self.api_url = os.getenv("UNSPLASH_API_URL", "https://api.unsplash.com")
@@ -89,7 +89,8 @@ class UnsplashService:
         if not self.api_key:
              logger.warning("UNSPLASH_API_KEY is not set.")
 
-    def _convert_item_to_image(self, item: dict) -> UnsplashImage:
+
+    def json_to_image(self, item: dict) -> UnsplashImage:
         return UnsplashImage(
             id=item['id'],
             created_at=item.get('created_at'),
@@ -124,6 +125,7 @@ class UnsplashService:
             current_user_collections=item.get('current_user_collections', [])
         )
 
+
     def search_images(self, query: str, limit: int = 15) -> List[UnsplashImage]:
         if not self.api_key: return []
         
@@ -146,10 +148,10 @@ class UnsplashService:
             return []
 
         data = response.json()
-        return [self._convert_item_to_image(item) for item in data['results']]
+        return [self.json_to_image(item) for item in data['results']]
 
-    def download_image(self, img: UnsplashImage, folder_path: str) -> bool:
-        # Strategy: try full, then regular, then small
+
+    def find_download_url(self, img: UnsplashImage) -> Optional[str, int]:
         priorities = [img.urls.full, img.urls.regular, img.urls.small]
         
         target_url = None
@@ -166,17 +168,32 @@ class UnsplashService:
                 content_kb = kb
                 break
         
-        if not target_url:
+        return target_url, content_kb
+
+
+    def download_image(self, img: UnsplashImage, folder_path: str) -> bool:
+        url, content_kb = self.find_download_url(img)
+        
+        if not url:
+            return False
+        
+        try:
+            image_data = requests.get(url, timeout=30)
+        except requests.RequestException as e:
+            logger.error(f"Error downloading image {img.id} from Unsplash: {e}")
+            return False
+            
+        if not content_kb:
             logger.info(f"Skipped image {img.id} (all sizes exceed {self.max_image_kb} KB)")
             return False
 
         try:
-            image_data = requests.get(target_url, timeout=30)
+            image_data = requests.get(url, timeout=30)
         except requests.RequestException as e:
             logger.error(f"Error downloading image {img.id} from Unsplash: {e}")
             return False
 
-        extension = get_extension_from_url(target_url)
+        extension = get_extension_from_url(url)
         image_path = os.path.join(folder_path, f"{img.id}.{extension}")
         create_folders_if_not_exist([folder_path])
         
@@ -185,3 +202,27 @@ class UnsplashService:
             
         logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
         return True
+
+
+    def add_image_to_db(self, term_str: str, img: Any, api_source: str):
+        db = next(get_db())
+        term_obj = db.query(SearchTerm).filter(SearchTerm.term == term_str).first()
+
+        if not term_obj:
+            logger.error(f"Term {term_str} not found in DB")
+            return
+
+        img_id = str(getattr(img, 'id', 'unknown'))
+        url_large = getattr(img, "largeImageURL", None)
+        url_thumbnail = getattr(img, "previewURL", None)
+
+        new_image = Image(
+            source_id=img_id,
+            source_api=api_source,
+            url_large=url_large,
+            url_thumbnail=url_thumbnail,
+            status=ImageStatus.APPROVED.value,
+            search_term_id=term_obj.id
+        )
+        db.add(new_image)
+        db.commit()

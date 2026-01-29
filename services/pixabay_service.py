@@ -33,7 +33,7 @@ class PixabayImage:
     user: str
     userImageURL: str
 
-class PixabayService:
+class PixabayService(ImageService):
     def __init__(self):
         self.api_key = os.getenv('PIXABAY_API_KEY')
         self.api_url = os.getenv('PIXABAY_API_URL')
@@ -42,7 +42,8 @@ class PixabayService:
         if not self.api_key or not self.api_url:
             logger.warning("PIXABAY_API_KEY or PIXABAY_API_URL not set.")
 
-    def _convert_json_to_image(self, item: Dict[str, Any]) -> PixabayImage:
+
+    def json_to_image(self, item: Dict[str, Any]) -> PixabayImage:
         return PixabayImage(
             id=item['id'],
             pageURL=item['pageURL'],
@@ -66,6 +67,7 @@ class PixabayService:
             user=item['user'],
             userImageURL=item['userImageURL']
         )
+
 
     def search_images(self, term: str, page: int = 1, per_page: int = 15) -> List[PixabayImage]:
         if not self.api_key:
@@ -91,24 +93,60 @@ class PixabayService:
             logger.error(f"Pixabay API error: {data['error']}")
             return []
             
-        return [self._convert_json_to_image(item) for item in data.get('hits', [])]
+        return [self.json_to_image(item) for item in data.get('hits', [])]
 
-    def download_image(self, img: PixabayImage, folder_path: str) -> bool:
+
+    def fetch_image(self, id: int) -> Optional[PixabayImage]:
+        if not self.api_key:
+            return None
+            
+        params = {
+            'key': self.api_key,
+            'id': id,
+        }
+
+        try:
+            response = requests.get(self.api_url, params=params, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Error fetching image from Pixabay for id '{id}': {e}")
+            return None
+
+        data = response.json()
+        if 'error' in data:
+            logger.error(f"Pixabay API error: {data['error']}")
+            return None
+            
+        return self.json_to_image(data.get('hits', [])[0])
+
+
+    def is_response_expired(self, response: requests.Response) -> bool:
+        content_str = response.text.lower()
+        return 'invalid' in content_str or 'expired' in content_str
+
+
+    def find_download_url(self, img: PixabayImage) -> Optional[str, int]:
         url = img.largeImageURL
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)
         
         if content_kb > self.max_image_kb:
             logger.info(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
+            return None, None
+
+        return url, content_kb
+
+
+    def download_image(self, img: PixabayImage, folder_path: str) -> bool:
+        url, content_kb = self.find_download_url(img)
+        if not url:
             return False
 
         try:
             response = requests.get(url, timeout=30)
-            # Basic validation
-            content_str = response.text.lower()
-            if 'invalid' in content_str or 'expired' in content_str:
-                 logger.error(f"URL invalid/expired: {url}")
-                 return False
+            if self.is_response_expired(response):
+                logger.error(f"URL invalid/expired: {url}")
+                return False
                  
             extension = url.split('.')[-1]
             image_path = os.path.join(folder_path, f"{img.id}.{extension}")
@@ -122,3 +160,27 @@ class PixabayService:
         except Exception as e:
             logger.error(f"Error downloading image {img.id} from Pixabay: {e}")
             return False
+
+
+    def add_image_to_db(self, term_str: str, img: Any, api_source: str):
+        db = next(get_db())
+        term_obj = db.query(SearchTerm).filter(SearchTerm.term == term_str).first()
+
+        if not term_obj:
+            logger.error(f"Term {term_str} not found in DB")
+            return
+
+        img_id = str(getattr(img, 'id', 'unknown'))
+        url_large = getattr(img, "largeImageURL", None)
+        url_thumbnail = getattr(img, "previewURL", None)
+
+        new_image = Image(
+            source_id=img_id,
+            source_api=api_source,
+            url_large=url_large,
+            url_thumbnail=url_thumbnail,
+            status=ImageStatus.APPROVED.value,
+            search_term_id=term_obj.id
+        )
+        db.add(new_image)
+        db.commit()
