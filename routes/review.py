@@ -59,7 +59,7 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
 
     try:
         service = get_service_by_api(api_type)
-        photos = service.search_images(term, limit=30)
+        photos = service.search_images(term, per_page=30)
     except Exception as e:
         logger.error(f"Error fetching photos: {e}")
         photos = []

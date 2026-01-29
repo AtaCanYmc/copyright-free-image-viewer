@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 import re
 from dotenv import load_dotenv
 import os
+from core.db import get_db
+from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
 from utils.common_utils import get_remote_size, term_to_folder_name
 from utils.log_utils import logger
@@ -24,7 +26,7 @@ class FlickrService(ImageService):
         self.headers = {"User-Agent": "Mozilla/5.0"}
 
 
-    def search_images(self, query: str, limit: int = 15) -> list[FlickerImage]:
+    def search_images(self, query: str, per_page: int = 15) -> list[FlickerImage]:
         params = {
             "text": query,
             "license": "4,5,6,9,10"
@@ -57,7 +59,7 @@ class FlickrService(ImageService):
                     hi_res_url=f"https:{hi_res}",
                 ))
 
-        return images[:limit]
+        return images[:per_page]
 
 
     def find_download_url(self, img: FlickerImage) -> Tuple[Optional[str], float]:

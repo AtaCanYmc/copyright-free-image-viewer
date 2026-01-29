@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from pexels_api import API
 from pexels_api.tools import Photo
 from core.db import get_db
-from core.models import Image, ImageStatus
+from core.models import Image, ImageStatus, SearchTerm
 from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
 from services.image_service import ImageService
@@ -95,39 +95,6 @@ class PexelsService(ImageService):
             url_original=url_original,
             url_thumbnail=url_thumbnail,
             url_page=url_page,
-            status=ImageStatus.APPROVED.value,
-            search_term_id=term_obj.id
-        )
-        db.add(new_image)
-        db.commit()
-
-        image_path = os.path.join(folder_path, f"{photo.id}.{photo.extension}")
-        create_folders_if_not_exist([folder_path])
-        
-        with open(image_path, 'wb') as file:
-            file.write(image_data.content)
-
-        logger.info(f"Downloaded image {photo.id} to {image_path} ({content_kb:.2f} KB)")
-        return True
-
-
-    def add_image_to_db(self, term_str: str, img: Any, api_source: str):
-        db = next(get_db())
-        term_obj = db.query(SearchTerm).filter(SearchTerm.term == term_str).first()
-
-        if not term_obj:
-            logger.error(f"Term {term_str} not found in DB")
-            return
-
-        img_id = str(getattr(img, 'id', 'unknown'))
-        url_large = getattr(img, "large2x", None) or getattr(img, "original", None)
-        url_thumbnail = getattr(img, "tiny", None)
-
-        new_image = Image(
-            source_id=img_id,
-            source_api=api_source,
-            url_large=url_large,
-            url_thumbnail=url_thumbnail,
             status=ImageStatus.APPROVED.value,
             search_term_id=term_obj.id
         )

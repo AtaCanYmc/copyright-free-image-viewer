@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Tuple, Any
 import requests
 from dotenv import load_dotenv
+from core.db import get_db
+from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
 from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
@@ -126,13 +128,13 @@ class UnsplashService(ImageService):
         )
 
 
-    def search_images(self, query: str, limit: int = 15) -> List[UnsplashImage]:
+    def search_images(self, query: str, per_page: int = 15) -> List[UnsplashImage]:
         if not self.api_key: return []
         
         url = f"{self.api_url}/search/photos"
         params = {
             "query": query,
-            "per_page": limit,
+            "per_page": per_page,
             "client_id": self.api_key,
             "order_by": "relevant"
         }

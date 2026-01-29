@@ -3,6 +3,8 @@ import os
 import requests
 from dataclasses import dataclass
 from dotenv import load_dotenv
+from core.db import get_db
+from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
 from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
