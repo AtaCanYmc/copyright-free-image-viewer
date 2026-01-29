@@ -14,6 +14,7 @@ from services.pexels_service import PexelsService
 from services.pixabay_service import PixabayService
 from services.unsplash_service import UnsplashService
 from services.flickr_service import FlickrService
+from services.image_service import ImageService
 
 # Instantiate Services
 pexels_service = PexelsService()

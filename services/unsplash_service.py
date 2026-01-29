@@ -1,10 +1,10 @@
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional, List, Tuple, Any
 import requests
 from dotenv import load_dotenv
-
+from services.image_service import ImageService
 from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
 
@@ -151,7 +151,7 @@ class UnsplashService(ImageService):
         return [self.json_to_image(item) for item in data['results']]
 
 
-    def find_download_url(self, img: UnsplashImage) -> Optional[str, int]:
+    def find_download_url(self, img: UnsplashImage) -> Tuple[Optional[str], float]:
         priorities = [img.urls.full, img.urls.regular, img.urls.small]
         
         target_url = None

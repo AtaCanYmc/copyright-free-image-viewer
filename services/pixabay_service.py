@@ -1,9 +1,9 @@
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 import os
 import requests
 from dataclasses import dataclass
 from dotenv import load_dotenv
-
+from services.image_service import ImageService
 from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
 
@@ -125,7 +125,7 @@ class PixabayService(ImageService):
         return 'invalid' in content_str or 'expired' in content_str
 
 
-    def find_download_url(self, img: PixabayImage) -> Optional[str, int]:
+    def find_download_url(self, img: PixabayImage) -> Tuple[Optional[str], float]:
         url = img.largeImageURL
         image_info = get_remote_size(url)
         content_kb = image_info.get('kb_decimal', 0)

@@ -1,12 +1,11 @@
+from typing import Optional, Tuple, Any
 from dataclasses import dataclass
 import requests
 from bs4 import BeautifulSoup
 import re
 from dotenv import load_dotenv
 import os
-import base64
-from io import BytesIO
-
+from services.image_service import ImageService
 from utils.common_utils import get_remote_size, term_to_folder_name
 from utils.log_utils import logger
 
@@ -61,7 +60,7 @@ class FlickrService(ImageService):
         return images[:limit]
 
 
-    def find_download_url(self, img: FlickerImage) -> Optional[str, int]:
+    def find_download_url(self, img: FlickerImage) -> Tuple[Optional[str], float]:
         return img.hi_res_url, get_remote_size(img.hi_res_url).get('kb_decimal', 0)
 
 

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple, Any
 import os
 import requests
 from dotenv import load_dotenv
@@ -8,6 +8,7 @@ from core.db import get_db
 from core.models import Image, ImageStatus
 from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
+from services.image_service import ImageService
 
 load_dotenv()
 
@@ -34,7 +35,7 @@ class PexelsService(ImageService):
             return []
 
 
-    def find_download_url(self, photo: Photo) -> Optional[str, int]:
+    def find_download_url(self, photo: Photo) -> Tuple[Optional[str], float]:
         url_list = [photo.original, photo.large2x, photo.large, photo.medium, photo.small]
         url_indx = 0
         content_kb = 0

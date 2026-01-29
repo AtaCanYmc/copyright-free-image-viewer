@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any
+from typing import Any, Optional, Dict, Tuple
 
 class ImageService(ABC):
     def __init__(self):
@@ -8,7 +8,7 @@ class ImageService(ABC):
     def search_images(self, term: str, page: int = 1, per_page: int = 15) -> list[Any]:
         pass
 
-    def find_download_url(self, photo: Any) -> Optional[str, int]:
+    def find_download_url(self, photo: Any) -> Tuple[Optional[str], float]:
         pass
     
     def download_image(self, photo: Any, folder_path: str) -> bool:
