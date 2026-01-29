@@ -120,6 +120,23 @@ class PixabayService(ImageService):
         return self.json_to_image(data.get('hits', [])[0])
 
 
+    def update_image_in_db(self, img: PixabayImage):
+        db = next(get_db())
+        try:
+            img_to_update = db.query(Image).filter(
+                Image.source_id == img.id,
+                Image.source_api == 'pixabay'
+            ).first()
+            
+            if img_to_update:
+                img_to_update.url_original = img.largeImageURL
+                img_to_update.url_thumbnail = img.previewURL
+                img_to_update.url_page = img.pageURL
+                db.commit()
+        except Exception as e:
+            logger.error(f"Error updating image in DB: {e}")
+            db.rollback()
+
     def is_response_expired(self, response: requests.Response) -> bool:
         content_str = response.text.lower()
         return 'invalid' in content_str or 'expired' in content_str
@@ -173,12 +190,14 @@ class PixabayService(ImageService):
         img_id = str(getattr(img, 'id', 'unknown'))
         url_original = getattr(img, "largeImageURL", None)
         url_thumbnail = getattr(img, "previewURL", None)
+        url_page = getattr(img, "pageURL", None)
 
         new_image = Image(
             source_id=img_id,
             source_api=api_source,
             url_original=url_original,
             url_thumbnail=url_thumbnail,
+            url_page=url_page,
             status=ImageStatus.APPROVED.value,
             search_term_id=term_obj.id
         )

@@ -28,6 +28,7 @@ class Image(Base):
     
     url_original = Column(String, nullable=True)
     url_thumbnail = Column(String, nullable=True)
+    url_page = Column(String, nullable=True)
     
     file_path = Column(String, nullable=True) # Local path if downloaded
     

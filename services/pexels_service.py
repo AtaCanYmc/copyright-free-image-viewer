@@ -87,12 +87,14 @@ class PexelsService(ImageService):
         img_id = str(getattr(img, 'id', 'unknown'))
         url_original = getattr(img, "large2x", None) or getattr(img, "original", None)
         url_thumbnail = getattr(img, "tiny", None)
+        url_page = getattr(img, "url", None)
 
         new_image = Image(
             source_id=img_id,
             source_api=api_source,
-            url_large=url_large,
             url_original=url_original,
+            url_thumbnail=url_thumbnail,
+            url_page=url_page,
             status=ImageStatus.APPROVED.value,
             search_term_id=term_obj.id
         )

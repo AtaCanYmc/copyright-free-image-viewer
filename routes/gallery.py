@@ -17,6 +17,7 @@ def image_to_dict(image):
         'api': image.source_api,
         'url_original': image.url_original,
         'url_thumbnail': image.url_thumbnail,
+        'url_page': image.url_page,
     }
 
 

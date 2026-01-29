@@ -102,14 +102,16 @@ class FlickrService(ImageService):
             return
 
         img_id = str(getattr(img, 'id', 'unknown'))
-        url_original = getattr(img, "largeImageURL", None)
-        url_thumbnail = getattr(img, "previewURL", None)
+        url_original = getattr(img, "hi_res_url", None)
+        url_thumbnail = getattr(img, "url", None)
+        url_page = getattr(img, "url", None)
 
         new_image = Image(
             source_id=img_id,
             source_api=api_source,
             url_original=url_original,
             url_thumbnail=url_thumbnail,
+            url_page=url_page,
             status=ImageStatus.APPROVED.value,
             search_term_id=term_obj.id
         )
