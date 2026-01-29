@@ -6,34 +6,30 @@ from core.models import SearchTerm
 setup_bp = Blueprint('setup', __name__)
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
 
+def update_terms(content: str):
+    db = next(get_db())
+    new_term_strings = [t.strip() for t in content.split('\n') if t.strip()]
+    
+    try:
+        db.query(SearchTerm).delete()
+        for term_str in new_term_strings:
+            term = SearchTerm(term=term_str)
+            db.add(term)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise e
+
+
 @setup_bp.route("/setup", methods=['GET', 'POST'])
 def index():
     db = next(get_db())
     
     if request.method == 'POST':
         content = request.form.get('terms', '')
-        # Clear existing terms or update? Simplest is to clear and replace for this logic, 
-        # or just add new ones. The original code overwrote the file. 
-        # So we will delete all and re-add to match original behavior, or smart update.
-        # Let's simple overwrite for now to match behavior.
-        
-        # Parse terms
-        new_term_strings = [t.strip() for t in content.split('\n') if t.strip()]
-        
-        # Transactional update
-        try:
-            db.query(SearchTerm).delete()
-            for term_str in new_term_strings:
-                term = SearchTerm(term=term_str)
-                db.add(term)
-            db.commit()
-        except Exception as e:
-            db.rollback()
-            raise e
-            
+        update_terms(content)
         return redirect(url_for("review.index"))
-
-    # Fetch existing terms
+        
     terms = db.query(SearchTerm).all()
     term_strings = [t.term for t in terms]
 
