@@ -5,8 +5,7 @@ from flask import Blueprint, redirect, url_for, render_template_string, request
 from core.db import get_db
 from core.models import Image, SearchTerm, ImageStatus
 from core.session import session
-from utils.common_utils import project_name, read_html_as_string, \
-    term_to_folder_name, is_download, create_folders_if_not_exist
+from utils.common_utils import project_name, read_html_as_string, term_to_folder_name, is_download
 from utils.log_utils import logger
 
 # Import Services
