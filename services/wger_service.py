@@ -1,7 +1,8 @@
 import os
-import requests
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from typing import Any, Optional
+
+import requests
 from dotenv import load_dotenv
 
 from core.db import get_db
@@ -40,7 +41,7 @@ class WgerService(ImageService):
             image_thumbnail=f"{self.wger_base_url}/{json_data['data']['image_thumbnail']}",
         )
 
-    def search_images(self, term: str, page: int = 1, per_page: int = 15) -> List[WgerImage]:
+    def search_images(self, term: str, page: int = 1, per_page: int = 15) -> list[WgerImage]:
         """
         Search for images in Wger API.
         Note: Wger search endpoint pagination might work differently or not be supported in the same way.
@@ -63,7 +64,7 @@ class WgerService(ImageService):
             logger.error(f"Error fetching images from Wger for term '{term}': {e}")
             return []
 
-    def get_all_images(self) -> List[Image]:
+    def get_all_images(self) -> list[Image]:
         db = next(get_db())
         return db.query(Image).filter(Image.source_api == 'wger').all()
 
@@ -81,15 +82,15 @@ class WgerService(ImageService):
             source_api=api_source,
             url_original=img.image,
             url_thumbnail=img.image_thumbnail,
-            # Wger images are usually jpg/png, we can infer or default. 
+            # Wger images are usually jpg/png, we can infer or default.
             # The original util treated it as just a string URL.
             # We'll assume jpg or check extension if possible, but default is fine.
-            extension="jpg", 
+            extension="jpg",
             url_page=f"{self.wger_base_url}/exercise/{img.base_id}/", # Constructing a page URL best effort
             status=ImageStatus.APPROVED.value,
             search_term_id=term_obj.id
         )
-        
+
         try:
             db.add(new_image)
             db.commit()

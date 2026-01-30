@@ -1,8 +1,10 @@
-from typing import List, Optional, Dict, Any
 import os
-import requests
 from dataclasses import dataclass
+from typing import Any, Optional
+
+import requests
 from dotenv import load_dotenv
+
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
@@ -39,12 +41,12 @@ class PixabayService(ImageService):
         self.api_key = os.getenv('PIXABAY_API_KEY')
         self.api_url = os.getenv('PIXABAY_API_URL')
         self.max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
-        
+
         if not self.api_key or not self.api_url:
             logger.warning("PIXABAY_API_KEY or PIXABAY_API_URL not set.")
 
 
-    def json_to_image(self, item: Dict[str, Any]) -> PixabayImage:
+    def json_to_image(self, item: dict[str, Any]) -> PixabayImage:
         return PixabayImage(
             id=item['id'],
             pageURL=item['pageURL'],
@@ -75,10 +77,10 @@ class PixabayService(ImageService):
         return db.query(Image).filter(Image.source_api == 'pixabay').all()
 
 
-    def search_images(self, term: str, page: int = 1, per_page: int = 15) -> List[PixabayImage]:
+    def search_images(self, term: str, page: int = 1, per_page: int = 15) -> list[PixabayImage]:
         if not self.api_key:
             return []
-            
+
         params = {
             'key': self.api_key,
             'q': term,
@@ -98,14 +100,14 @@ class PixabayService(ImageService):
         if 'error' in data:
             logger.error(f"Pixabay API error: {data['error']}")
             return []
-            
+
         return [self.json_to_image(item) for item in data.get('hits', [])]
 
 
     def fetch_image(self, id: int) -> Optional[PixabayImage]:
         if not self.api_key:
             return None
-            
+
         params = {
             'key': self.api_key,
             'id': id,
@@ -122,7 +124,7 @@ class PixabayService(ImageService):
         if 'error' in data:
             logger.error(f"Pixabay API error: {data['error']}")
             return None
-            
+
         return self.json_to_image(data.get('hits', [])[0])
 
 
@@ -133,7 +135,7 @@ class PixabayService(ImageService):
                 Image.source_id == img.id,
                 Image.source_api == 'pixabay'
             ).first()
-            
+
             if img_to_update:
                 img_to_update.url_original = img.largeImageURL
                 img_to_update.url_thumbnail = img.previewURL

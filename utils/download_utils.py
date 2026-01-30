@@ -1,6 +1,8 @@
 import os
+
 import requests
 from dotenv import load_dotenv
+
 from core.models import Image
 from utils.common_utils import create_folders_if_not_exist
 from utils.env_constants import max_image_kb
@@ -49,7 +51,7 @@ def download_image(img: Image, folder_path: str, max_kb: int = max_image_kb):
    url = img.url_original
    if not url:
        return False
-   
+
    try:
      image_info = get_remote_size(url)
      content_kb = image_info.get('kb_decimal', 0)
@@ -63,7 +65,7 @@ def download_image(img: Image, folder_path: str, max_kb: int = max_image_kb):
 
    image_path = os.path.join(folder_path, f"{img.source_id}.{img.extension}")
    create_folders_if_not_exist([folder_path])
-   
+
    with open(image_path, 'wb') as file:
        file.write(image_data.content)
 

@@ -1,13 +1,15 @@
 import os
 import shutil
-from flask import Blueprint, render_template_string, jsonify
-from utils.common_utils import read_html_as_string, get_directory_tree, save_json_file, save_csv_file
+
+from flask import Blueprint, jsonify, render_template_string
+
+from core.db import get_db, get_query_as_json
+from core.models import Image
+from factory.image_service_factory import ImageServiceFactory
+from utils.common_utils import get_directory_tree, read_html_as_string, save_csv_file, save_json_file
 from utils.env_constants import project_name
 from utils.image_utils import convert_to_webp
 from utils.log_utils import logger
-from factory.image_service_factory import ImageServiceFactory
-from core.db import get_db, get_query_as_json
-from core.models import Image
 
 explorer_bp = Blueprint('explorer', __name__)
 EXPLORER_PAGE_HTML = read_html_as_string("templates/explorer_page.html")
@@ -38,7 +40,7 @@ def convert_webp_action():
 @explorer_bp.route('/explorer/actions/convert-db-json', methods=['POST'])
 def convert_db_json_action():
     try:
-        logger.info(f"Converting images in database to JSON...")
+        logger.info("Converting images in database to JSON...")
         query = "SELECT i.*, st.term FROM images i JOIN search_terms st ON i.search_term_id = st.id"
         json_data = get_query_as_json(query)
         file_path = os.path.join('assets', project_name, 'json_files', 'images.json')
@@ -52,7 +54,7 @@ def convert_db_json_action():
 @explorer_bp.route('/explorer/actions/convert-db-csv', methods=['POST'])
 def convert_db_csv_action():
     try:
-        logger.info(f"Converting images in database to CSV...")
+        logger.info("Converting images in database to CSV...")
         query = "SELECT i.*, st.term FROM images i JOIN search_terms st ON i.search_term_id = st.id"
         csv_data = get_query_as_json(query)
         file_path = os.path.join('assets', project_name, 'csv_files', 'images.csv')
@@ -70,11 +72,11 @@ def refetch_action(api_source):
         service = ImageServiceFactory.get_service(api_source)
         db = next(get_db())
         api_images = db.query(Image).filter(Image.api_source == api_source).all()
-        
+
         for img in api_images:
             new_img = service.fetch_image(img.source_id)
             service.update_image_in_db(new_img)
-                
+
         return jsonify({"status": "success", "message": f"Refetched {len(api_images)} images from {api_source}."})
     except Exception as e:
         logger.error(f"Error refetching from {api_source}: {e}")

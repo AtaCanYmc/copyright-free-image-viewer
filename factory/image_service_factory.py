@@ -1,12 +1,13 @@
+from services.flickr_service import FlickrService
+from services.image_service import ImageService
 from services.pexels_service import PexelsService
 from services.pixabay_service import PixabayService
 from services.unsplash_service import UnsplashService
-from services.flickr_service import FlickrService
-from services.image_service import ImageService
+
 
 class ImageServiceFactory:
     """Factory class to manage and provide image services."""
-    
+
     # Pre-instantiate services in a registry dictionary
     _services = {
         'pexels': PexelsService(),

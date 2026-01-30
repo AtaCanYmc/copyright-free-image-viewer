@@ -1,12 +1,13 @@
-from typing import List
 import os
+
 from dotenv import load_dotenv
 from pexels_api import API
 from pexels_api.tools import Photo
+
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
-from utils.log_utils import logger
 from services.image_service import ImageService
+from utils.log_utils import logger
 
 load_dotenv()
 
@@ -17,14 +18,14 @@ class PexelsService(ImageService):
             logger.warning("PEXELS_API_KEY is not set.")
         else:
             self.api = API(self.api_key)
-            
+
         self.max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
 
 
-    def search_images(self, term: str, page: int = 1, per_page: int = 15) -> List[Photo]:
+    def search_images(self, term: str, page: int = 1, per_page: int = 15) -> list[Photo]:
         if not self.api_key:
             return []
-            
+
         try:
             self.api.search(term, page=page, results_per_page=per_page)
             return self.api.get_entries()

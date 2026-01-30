@@ -1,8 +1,11 @@
 import os
 from pathlib import Path
+
 from PIL import Image
+
 from utils.env_constants import webp_compression_quality
 from utils.log_utils import logger
+
 
 def convert_to_webp(directory_path, quality=webp_compression_quality):
     """

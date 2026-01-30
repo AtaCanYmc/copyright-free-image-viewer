@@ -1,9 +1,10 @@
+import csv
+import json
 import os
 import shutil
 from threading import Timer
-import json
-from flask import send_file, Response
-import csv
+
+from flask import Response, send_file
 
 from utils.log_utils import logger
 
@@ -26,12 +27,12 @@ def create_files_if_not_exist(file_paths: list[str]):
 
 
 def read_html_as_string(file_path: str) -> str:
-    with open(file_path, 'r', encoding='utf-8') as file:
+    with open(file_path, encoding='utf-8') as file:
         return file.read()
 
 
 def read_json_file(file_path: str) -> dict:
-    with open(file_path, 'r', encoding='utf-8') as file:
+    with open(file_path, encoding='utf-8') as file:
         return json.load(file)
 
 

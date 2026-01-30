@@ -1,7 +1,8 @@
+import argparse
 import os
 import sys
 import uuid
-import argparse
+
 from dotenv import load_dotenv
 
 load_dotenv()

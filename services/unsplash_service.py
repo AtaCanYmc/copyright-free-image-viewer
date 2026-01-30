@@ -1,8 +1,10 @@
 import os
 from dataclasses import dataclass, field
-from typing import Optional, List, Any
+from typing import Any, Optional
+
 import requests
 from dotenv import load_dotenv
+
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
@@ -63,7 +65,7 @@ class UnsplashImage:
     urls: Optional[Urls] = None
     links: Optional[Links] = None
     user: Optional[User] = None
-    current_user_collections: List[dict] = field(default_factory=list)
+    current_user_collections: list[dict] = field(default_factory=list)
 
 
 def remove_id_from_img_url(url: str) -> str:
@@ -85,7 +87,7 @@ class UnsplashService(ImageService):
         self.api_key = os.getenv('UNSPLASH_API_KEY')
         self.api_url = os.getenv("UNSPLASH_API_URL", "https://api.unsplash.com")
         self.max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
-        
+
         if not self.api_key:
              logger.warning("UNSPLASH_API_KEY is not set.")
 
@@ -131,9 +133,9 @@ class UnsplashService(ImageService):
         return db.query(Image).filter(Image.source_api == 'unsplash').all()
 
 
-    def search_images(self, query: str, per_page: int = 15) -> List[UnsplashImage]:
+    def search_images(self, query: str, per_page: int = 15) -> list[UnsplashImage]:
         if not self.api_key: return []
-        
+
         url = f"{self.api_url}/search/photos"
         params = {
             "query": query,

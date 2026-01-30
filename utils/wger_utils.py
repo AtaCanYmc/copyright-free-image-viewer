@@ -1,8 +1,10 @@
 import os
 from dataclasses import dataclass
+
 import requests
-from utils.log_utils import logger
 from dotenv import load_dotenv
+
+from utils.log_utils import logger
 
 load_dotenv()
 

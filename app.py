@@ -3,15 +3,15 @@ from threading import Timer
 
 from flask import Flask, render_template_string
 
-from core.db import init_db, get_db
+from core.db import get_db, init_db
 from core.models import Image, ImageStatus, SearchTerm
 from routes.explorer import explorer_bp
 from routes.gallery import gallery_bp
 from routes.review import review_bp
 from routes.settings import settings_bp
 from routes.setup import setup_bp
-from utils.common_utils import create_folders_if_not_exist, read_html_as_string, delete_files_if_exist
-from utils.env_constants import project_name, app_host, app_port, use_debug_mode, use_reloader
+from utils.common_utils import create_folders_if_not_exist, delete_files_if_exist, read_html_as_string
+from utils.env_constants import app_host, app_port, project_name, use_debug_mode, use_reloader
 
 # Initialize Database
 init_db()
@@ -57,7 +57,7 @@ def home():
     db = next(get_db())
     total_terms = db.query(SearchTerm).count()
     downloaded = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).count()
-    
+
     return render_template_string(HOME_PAGE_HTML,
                                   project_name=project_name,
                                   total_terms=total_terms,

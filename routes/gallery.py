@@ -1,8 +1,9 @@
 import os
-import shutil
-from flask import Blueprint, request, redirect, url_for, render_template_string
+
+from flask import Blueprint, redirect, render_template_string, request, url_for
+
 from core.db import get_db
-from core.models import Image, SearchTerm, ImageStatus
+from core.models import Image, ImageStatus, SearchTerm
 from utils.common_utils import get_project_folder_as_zip, read_html_as_string
 from utils.env_constants import project_name
 from utils.log_utils import logger
@@ -24,7 +25,7 @@ def image_to_dict(image):
 def get_gallery_data():
     db = next(get_db())
     images = db.query(Image).join(SearchTerm).filter(Image.status == ImageStatus.APPROVED.value).all()
-    
+
     gallery_data = {}
     for img in images:
         term = img.search_term.term
@@ -40,7 +41,7 @@ def get_gallery_data():
 @gallery_bp.route('/gallery')
 def index():
     gallery_data = get_gallery_data()
-    
+
     return render_template_string(GALLERY_PAGE_HTML,
                                   gallery_data=gallery_data,
                                   project_name=project_name), 200
@@ -53,7 +54,7 @@ def delete_image():
     api_type = request.form.get('api')
     extension = request.form.get('extension', 'jpg')
     full_file_path_flat = f"assets/{project_name}/image_files/{term}/{image_id}.{extension}"
-    
+
     if os.path.exists(full_file_path_flat):
         os.remove(full_file_path_flat)
 
@@ -64,7 +65,7 @@ def delete_image():
             Image.source_id == encoded_id,
             Image.source_api == api_type
         ).first()
-        
+
         if img_to_delete:
             db.delete(img_to_delete)
             db.commit()

@@ -1,6 +1,7 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from services.wger_service import WgerService, WgerImage
+
+from services.wger_service import WgerImage, WgerService
+
 
 @patch('services.wger_service.requests.get')
 def test_wger_search_images(mock_get):
@@ -36,7 +37,7 @@ def test_wger_search_images(mock_get):
     assert item.id == 101
     assert item.name == "Bench Press"
     assert "https://wger.de/media/exercise-images/101.jpg" in item.image
-    
+
     # Verify URL construction
     args, kwargs = mock_get.call_args
     assert "term=bench" in args[0]
@@ -55,7 +56,7 @@ def test_wger_search_images_empty(mock_get):
 @patch('services.wger_service.requests.get')
 def test_wger_search_error(mock_get):
     mock_get.side_effect = Exception("API Error")
-    
+
     service = WgerService()
     results = service.search_images("error")
     assert results == []

@@ -1,6 +1,8 @@
 import os
+
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, scoped_session, declarative_base
+from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker
+
 from utils.env_constants import project_name
 from utils.log_utils import logger
 

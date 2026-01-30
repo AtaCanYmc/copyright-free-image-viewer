@@ -1,14 +1,16 @@
 from typing import Any
-from flask import Blueprint, redirect, url_for, render_template_string, request
-from core.db import get_db
-from core.models import Image, SearchTerm, ImageStatus
-from core.session import session
-from utils.common_utils import read_html_as_string, term_to_folder_name
-from utils.env_constants import project_name, search_per_page, min_image_for_term
-from utils.log_utils import logger
-from utils.download_utils import download_image
-from factory.image_service_factory import ImageServiceFactory
+
+from flask import Blueprint, redirect, render_template_string, request, url_for
 from sqlalchemy import func
+
+from core.db import get_db
+from core.models import Image, ImageStatus, SearchTerm
+from core.session import session
+from factory.image_service_factory import ImageServiceFactory
+from utils.common_utils import read_html_as_string, term_to_folder_name
+from utils.download_utils import download_image
+from utils.env_constants import min_image_for_term, project_name, search_per_page
+from utils.log_utils import logger
 
 review_bp = Blueprint('review', __name__)
 REVIEW_PAGE_HTML = read_html_as_string("templates/review_page.html")
@@ -53,7 +55,7 @@ def get_current_search_terms():
     db = next(get_db())
     eligible_terms_query = (
             db.query(SearchTerm)
-            .outerjoin(Image, (SearchTerm.id == Image.search_term_id) & 
+            .outerjoin(Image, (SearchTerm.id == Image.search_term_id) &
                               (Image.status == ImageStatus.APPROVED.value))
             .group_by(SearchTerm.id)
             .having(func.count(Image.id) < min_image_for_term)
@@ -110,7 +112,7 @@ def current_photo_info():
         return None, None, None, None
 
     cur_term = terms[ti]
-    
+
     # Count saved images for this term from DB
     db = next(get_db())
     term_obj = db.query(SearchTerm).filter(SearchTerm.term == cur_term).first()
@@ -128,7 +130,7 @@ def current_photo_info():
 
     photo = photos[pi]
     url = get_url_from_img(photo, cur_api)
-            
+
     return cur_term, photo, url, cur_term_saved_img_count
 
 
@@ -140,24 +142,24 @@ def download_db_image(img: Image):
 @review_bp.route('/review')
 def index():
     terms = get_current_search_terms()
-    
+
     if not terms:
         return redirect(url_for("setup.index"))
-        
+
     if session.term_idx >= len(terms):
         db = next(get_db())
         total_downloaded = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).count()
         return render_template_string(REVIEW_PAGE_HTML, finished=True, downloaded=total_downloaded, project_name=project_name)
-        
+
     term, photo, url, cur_term_saved_img_count = current_photo_info()
-    
+
     finished = False
     if term is None:
         finished = True
-        
+
     db = next(get_db())
     total_downloaded = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).count()
-    
+
     return render_template_string(
         REVIEW_PAGE_HTML,
         finished=finished,
@@ -176,7 +178,7 @@ def index():
 @review_bp.route("/decision", methods=["POST"])
 def decision():
     action = request.form.get("action")
-    
+
     term, photo, url, cur_term_saved_img_count = current_photo_info()
     logger.debug(f"Decision Execution - Action: {action}, Term: {term}")
 
@@ -215,7 +217,7 @@ def decision():
 @review_bp.route("/api-decision", methods=["POST"])
 def api_decision():
     action = request.form.get("action")
-    
+
     if action == "use-pexels-api":
         session.photos_cache = {}
         session.current_api = 'pexels'
@@ -232,7 +234,7 @@ def api_decision():
         session.photos_cache = {}
         session.current_api = 'flickr'
         session.photo_idx = 0
-        
+
     return redirect(url_for("review.index"))
 
 

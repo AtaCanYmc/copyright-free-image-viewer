@@ -1,10 +1,12 @@
-from typing import Any
+import os
+import re
 from dataclasses import dataclass
+from typing import Any
+
 import requests
 from bs4 import BeautifulSoup
-import re
 from dotenv import load_dotenv
-import os
+
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
@@ -53,10 +55,10 @@ class FlickrService(ImageService):
             if "staticflickr.com" in src:
                 hi_res = re.sub(r"_[a-z]\.jpg", "_b.jpg", src)
                 img_id = hi_res.split("/")[-1].split("_")[0]
-                
+
                 if any(existing_img.id == img_id for existing_img in images):
                     continue
-                    
+
                 images.append(FlickerImage(
                     id=img_id,
                     url=f"https:{src}",

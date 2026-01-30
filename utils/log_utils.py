@@ -1,8 +1,8 @@
 import logging
 import os
 from datetime import datetime
-from utils.env_constants import project_name
 
+from utils.env_constants import project_name
 
 LOG_DIR = f"assets/{project_name}/log_files"
 
@@ -15,7 +15,7 @@ formatter = logging.Formatter(
 def setup_custom_logger(name):
     # Ensure log directory exists
     os.makedirs(LOG_DIR, exist_ok=True)
-    
+
     log_file = os.path.join(LOG_DIR, f"app_{datetime.now().strftime('%Y%m%d')}.log")
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setFormatter(formatter)

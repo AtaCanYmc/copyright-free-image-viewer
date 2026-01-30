@@ -1,9 +1,10 @@
-from flask import Blueprint, request, redirect, url_for, render_template_string
-from utils.common_utils import read_html_as_string
-from utils.env_constants import project_name
+from flask import Blueprint, redirect, render_template_string, request, url_for
+
 from core.db import get_db
 from core.models import SearchTerm
 from core.session import session
+from utils.common_utils import read_html_as_string
+from utils.env_constants import project_name
 
 setup_bp = Blueprint('setup', __name__)
 TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
@@ -11,7 +12,7 @@ TXT_SETUP_PAGE_HTML = read_html_as_string("templates/txt_setup_page.html")
 def update_terms(content: str):
     db = next(get_db())
     new_term_strings = [t.strip() for t in content.split('\n') if t.strip()]
-    
+
     try:
         db.query(SearchTerm).delete()
         for term_str in new_term_strings:
@@ -28,12 +29,12 @@ def update_terms(content: str):
 @setup_bp.route("/setup", methods=['GET', 'POST'])
 def index():
     db = next(get_db())
-    
+
     if request.method == 'POST':
         content = request.form.get('terms', '')
         update_terms(content)
         return redirect(url_for("review.index"))
-        
+
     terms = db.query(SearchTerm).all()
     term_strings = [t.term for t in terms]
 
