@@ -136,7 +136,7 @@
                             </div>
 
                             <form action="{{ url_for('gallery.delete_image') }}" method="POST"
-                                onsubmit="return confirm('Bu görseli silmek istediğinize emin misiniz?');"
+                                onsubmit="return confirm('Are you sure you want to delete this image?');"
                                 class="absolute top-2 right-2 opacity-0 group-hover/imgbox:opacity-100 transition-opacity">
                                 <input type="hidden" name="term" value="{{ term }}">
                                 <input type="hidden" name="imageID" value="{{ img.id }}">
