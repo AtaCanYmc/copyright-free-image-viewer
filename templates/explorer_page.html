@@ -22,6 +22,119 @@
             transition: all 0.3s ease-in-out;
         }
     </style>
+
+    <script>
+        function toggleNode(el) {
+            const content = el.nextElementSibling;
+            if (content && content.classList.contains('folder-content')) {
+                content.classList.toggle('hidden');
+                if (!content.classList.contains('hidden')) {
+                    el.classList.add('bg-indigo-50/50');
+                } else {
+                    el.classList.remove('bg-indigo-50/50');
+                }
+            }
+        }
+
+        async function runAction(event, action) {
+            if (event) {
+                event.preventDefault();
+            }
+
+            const btn = event ? event.currentTarget : null;
+            const originalText = btn ? btn.innerHTML : '';
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            }
+
+            try {
+                let url = '';
+                let method = 'POST';
+
+                if (action === 'convert-webp') {
+                    url = '/explorer/actions/convert-webp';
+                } else if (action.startsWith('refetch-')) {
+                    const source = action.split('-')[1];
+                    url = `/explorer/actions/refetch/${source}`;
+                } else if (action === 'remove-all') { // Legacy internal name for images
+                    url = '/explorer/actions/delete-images';
+                } else if (action === 'remove-json') {
+                    url = '/explorer/actions/delete-json';
+                }
+
+                if (!url) {
+                    throw new Error(`Invalid action: ${action}`);
+                }
+
+                // Show Overlay
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.classList.remove('hidden');
+                    overlay.classList.add('flex');
+                }
+
+                const response = await fetch(url, { method: method });
+
+                // Check if response is JSON
+                const contentType = response.headers.get("content-type");
+                let data;
+                if (contentType && contentType.includes("application/json")) {
+                    data = await response.json();
+                } else {
+                    // If not JSON, probably an HTML error page (500, 404, etc.)
+                    const text = await response.text();
+                    throw new Error(`Server returned non-JSON response: ${response.status} ${response.statusText}.`);
+                }
+
+                if (response.ok) {
+                    // Determine style based on success
+                    alert(`Success: ${data.message}`);
+                    window.location.reload();
+                } else {
+                    alert(`Error: ${data.message}`);
+                    if (overlay) {
+                        overlay.classList.add('hidden'); // Hide only on error if we are not reloading
+                        overlay.classList.remove('flex');
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`An error occurred: ${error.message}`);
+
+                // Hide overlay on error
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+        }
+
+        function confirmDeleteAll(event, type) {
+            let msg = "Are you sure?";
+            let action = "";
+
+            if (type === 'images') {
+                msg = "DANGER: This will delete all images in the project folder. Are you sure?";
+                action = 'remove-all';
+            } else if (type === 'json') {
+                msg = "This will delete all JSON files in the project folder. Are you sure?";
+                action = 'remove-json';
+            }
+
+            if (confirm(msg)) {
+                runAction(event, action);
+            }
+        }
+    </script>
 </head>
 
 <body class="bg-gray-50 text-gray-900 antialiased">
@@ -122,7 +235,6 @@
                     {{ render_node(tree_data) }}
                 </div>
             </div>
-
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-white rounded-3xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -142,7 +254,7 @@
                     </h3>
 
                     <div class="space-y-3">
-                        <button onclick="runAction('convert-webp')"
+                        <button type="button" onclick="runAction(event, 'convert-webp')"
                             class="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl transition-all group">
                             <span class="text-sm font-semibold">Convert Images to WebP</span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -155,22 +267,22 @@
                         <div class="pt-2 space-y-2">
                             <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-wider">Refetch
                                 Images</p>
-                            <button onclick="runAction('refetch-pexels')"
+                            <button type="button" onclick="runAction(event, 'refetch-pexels')"
                                 class="w-full flex items-center gap-3 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-medium transition-all">
                                 <span class="w-2 h-2 bg-teal-400 rounded-full"></span> Pexels
                             </button>
-                            <button onclick="runAction('refetch-pixabay')"
+                            <button type="button" onclick="runAction(event, 'refetch-pixabay')"
                                 class="w-full flex items-center gap-3 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-medium transition-all">
                                 <span class="w-2 h-2 bg-yellow-400 rounded-full"></span> Pixabay
                             </button>
-                            <button onclick="runAction('refetch-unsplash')"
+                            <button type="button" onclick="runAction(event, 'refetch-unsplash')"
                                 class="w-full flex items-center gap-3 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-sm font-medium transition-all">
                                 <span class="w-2 h-2 bg-black rounded-full"></span> Unsplash
                             </button>
                         </div>
 
                         <div class="pt-4 border-t border-gray-100">
-                            <button onclick="confirmDeleteAll('images')"
+                            <button type="button" onclick="confirmDeleteAll(event, 'images')"
                                 class="w-full flex items-center gap-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -185,7 +297,7 @@
                             </button>
                         </div>
                         <div class="pt-0">
-                            <button onclick="confirmDeleteAll('json')"
+                            <button type="button" onclick="confirmDeleteAll(event, 'json')"
                                 class="w-full flex items-center gap-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-2xl transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -211,116 +323,6 @@
             </div>
         </div>
     </main>
-
-    <script>
-        function toggleNode(el) {
-            const content = el.nextElementSibling;
-            if (content && content.classList.contains('folder-content')) {
-                content.classList.toggle('hidden');
-                if (!content.classList.contains('hidden')) {
-                    el.classList.add('bg-indigo-50/50');
-                } else {
-                    el.classList.remove('bg-indigo-50/50');
-                }
-            }
-        }
-
-        async function runAction(action) {
-            const btn = document.activeElement;
-            const scale = btn ? btn.style.transform : '';
-            const originalText = btn ? btn.innerHTML : '';
-
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
-            }
-
-            try {
-                let url = '';
-                let method = 'POST';
-
-                if (action === 'convert-webp') {
-                    url = '/explorer/actions/convert-webp';
-                } else if (action.startsWith('refetch-')) {
-                    const source = action.split('-')[1];
-                    url = `/explorer/actions/refetch/${source}`;
-                } else if (action === 'remove-all') { // Legacy internal name for images
-                    url = '/explorer/actions/delete-images';
-                } else if (action === 'remove-json') {
-                    url = '/explorer/actions/delete-json';
-                }
-
-                if (!url) {
-                    throw new Error(`Invalid action: ${action}`);
-                }
-
-                // Show Overlay
-                const overlay = document.getElementById('loading-overlay');
-                if (overlay) {
-                    overlay.classList.remove('hidden');
-                    overlay.classList.add('flex');
-                }
-
-                const response = await fetch(url, { method: method });
-
-                // Check if response is JSON
-                const contentType = response.headers.get("content-type");
-                let data;
-                if (contentType && contentType.includes("application/json")) {
-                    data = await response.json();
-                } else {
-                    // If not JSON, probably an HTML error page (500, 404, etc.)
-                    const text = await response.text();
-                    throw new Error(`Server returned non-JSON response: ${response.status} ${response.statusText}.`);
-                }
-
-                if (response.ok) {
-                    // Determine style based on success
-                    alert(`Success: ${data.message}`);
-                    window.location.reload();
-                } else {
-                    alert(`Error: ${data.message}`);
-                    if (overlay) {
-                        overlay.classList.add('hidden'); // Hide only on error if we are not reloading
-                        overlay.classList.remove('flex');
-                    }
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                alert(`An error occurred: ${error.message}`);
-
-                // Hide overlay on error
-                const overlay = document.getElementById('loading-overlay');
-                if (overlay) {
-                    overlay.classList.add('hidden');
-                    overlay.classList.remove('flex');
-                }
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }
-            }
-        }
-
-        function confirmDeleteAll(type) {
-            let msg = "Are you sure?";
-            let action = "";
-
-            if (type === 'images') {
-                msg = "DANGER: This will delete all images in the project folder. Are you sure?";
-                action = 'remove-all';
-            } else if (type === 'json') {
-                msg = "This will delete all JSON files in the project folder. Are you sure?";
-                action = 'remove-json';
-            }
-
-            if (confirm(msg)) {
-                runAction(action);
-            }
-        }
-    </script>
     <div id="loading-overlay"
         class="hidden fixed inset-0 bg-indigo-900/20 backdrop-blur-sm z-[100] flex items-center justify-center transition-all duration-300">
         <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center">
