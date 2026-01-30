@@ -58,14 +58,14 @@ def download_image(img: Image, folder_path: str, max_kb: int = max_image_kb):
          return False
      image_data = requests.get(url, timeout=30)
    except requests.RequestException as e:
-       logger.error(f"Error downloading image {img.id} from {img.source_api}: {e}")
+       logger.error(f"Error downloading image {img.source_id} from {img.source_api}: {e}")
        return False
 
-   image_path = os.path.join(folder_path, f"{img.id}.{img.extension}")
+   image_path = os.path.join(folder_path, f"{img.source_id}.{img.extension}")
    create_folders_if_not_exist([folder_path])
    
    with open(image_path, 'wb') as file:
        file.write(image_data.content)
 
-   logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
+   logger.info(f"Downloaded image {img.source_id} to {image_path} ({content_kb:.2f} KB)")
    return True
