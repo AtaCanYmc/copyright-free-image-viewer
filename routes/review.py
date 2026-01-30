@@ -1,12 +1,10 @@
-import os
 from typing import Any
-
 from flask import Blueprint, redirect, url_for, render_template_string, request
 from core.db import get_db
 from core.models import Image, SearchTerm, ImageStatus
 from core.session import session
 from utils.common_utils import read_html_as_string, term_to_folder_name
-from utils.env_constants import project_name, search_per_page
+from utils.env_constants import project_name, search_per_page, min_image_for_term
 from utils.log_utils import logger
 from utils.download_utils import download_image
 from factory.image_service_factory import ImageServiceFactory
@@ -46,7 +44,15 @@ def get_term_count(term: str) -> int:
 
 def get_current_search_terms():
     db = next(get_db())
-    return [t.term for t in db.query(SearchTerm).all()]
+    eligible_terms_query = (
+            db.query(SearchTerm)
+            .outerjoin(Image, (SearchTerm.id == Image.search_term_id) & 
+                              (Image.status == ImageStatus.APPROVED.value))
+            .group_by(SearchTerm.id)
+            .having(func.count(Image.id) < min_image_for_term)
+            .all()
+        )
+    return [t.term for t in eligible_terms_query]
 
 
 def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
