@@ -7,7 +7,7 @@ from utils.image_utils import convert_to_webp
 from utils.log_utils import logger
 from factory.image_service_factory import ImageServiceFactory
 from core.db import get_db
-from core.models import SearchTerm
+from core.models import SearchTerm, Image
 
 explorer_bp = Blueprint('explorer', __name__)
 EXPLORER_PAGE_HTML = read_html_as_string("templates/explorer_page.html")
@@ -34,47 +34,32 @@ def convert_webp_action():
         logger.error(f"Error converting to webp: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
 @explorer_bp.route('/explorer/actions/refetch/<api_source>', methods=['POST'])
 def refetch_action(api_source):
     try:
         logger.info(f"Refetching images from {api_source}...")
         service = ImageServiceFactory.get_service(api_source)
         db = next(get_db())
-        terms = db.query(SearchTerm).all()
+        api_images = db.query(Image).filter(Image.api_source == api_source).all()
         
-        count = 0
-        for term in terms:
-            # Re-search for each term
-            # Assuming we want to add more images? Or just refresh? 
-            # The prompt implies "refetch", likely getting new images or ensuring we have enough.
-            # We'll use search_images and add_image_to_db logic.
-            images = service.search_images(term.term, per_page=5) # Fetch a few new ones
-            for img in images:
-                # add_image_to_db handles deduplication if implemented correctly or ignored
-                service.add_image_to_db(term.term, img, api_source)
-                count += 1
+        for img in api_images:
+            new_img = service.fetch_image(img.source_id)
+            service.update_image_in_db(new_img)
                 
-        return jsonify({"status": "success", "message": f"Refetched {count} images from {api_source}."})
+        return jsonify({"status": "success", "message": f"Refetched {len(api_images)} images from {api_source}."})
     except Exception as e:
         logger.error(f"Error refetching from {api_source}: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+
 @explorer_bp.route('/explorer/actions/delete-images', methods=['POST'])
 def delete_images_action():
     try:
-        images_path = os.path.join('assets', project_name, 'images')
+        images_path = os.path.join('assets', project_name, 'image_files')
         if os.path.exists(images_path):
             shutil.rmtree(images_path)
             os.makedirs(images_path, exist_ok=True)
-            # Also clear from DB? "Remove All Images" usually implies filesystem clean. 
-            # But if DB records exist, they will be broken. 
-            # Ideally we should truncate 'images' table or similar. 
-            # For now, let's stick to filesystem as per the button "Remove All Images" in explorer context often implies files.
-            # However, to be consistent, let's also update DB status to PENDING or delete rows? 
-            # Given the request "Maintenance Actions", cleaning files is the primary goal.
-            # But let's check the prompt "Remove All JSON Data" vs "Images".
-            
-            # Let's just delete files for now as safe default for "Filesystem Explorer".
             logger.info("Deleted all images in assets folder.")
             return jsonify({"status": "success", "message": "All images deleted."})
         return jsonify({"status": "success", "message": "Images folder not found."})
@@ -82,32 +67,16 @@ def delete_images_action():
         logger.error(f"Error deleting images: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-@explorer_bp.route('/explorer/actions/delete-json', methods=['POST'])
-def delete_json_action():
+
+@explorer_bp.route('/explorer/actions/delete-db', methods=['POST'])
+def delete_db_action():
     try:
-        # "Remove All JSON Data"
-        # Assuming this means clearing the database or json files if any.
-        # The project uses SQLite. Maybe it means resetting the DB? 
-        # Or maybe there are JSON files in 'assets/<project>'?
-        # Let's look at get_directory_tree usage.
-        
-        # If we look at the 'assets' folder structure from previous `list_dir`,
-        # `assets` contains `project_name` folder.
-        # Inside `project_name` there is `database` folder with `.db`.
-        # Maybe "JSON Data" is legacy or refers to `search_terms.json` if it existed?
-        # I'll implement it to delete any .json files in the project root.
-        
-        project_path = os.path.join('assets', project_name)
-        deleted_count = 0
-        if os.path.exists(project_path):
-            for file in os.listdir(project_path):
-                if file.endswith(".json"):
-                    os.remove(os.path.join(project_path, file))
-                    deleted_count += 1
-        
-        logger.info(f"Deleted {deleted_count} JSON files.")
-        return jsonify({"status": "success", "message": f"Deleted {deleted_count} JSON files."})
+        db = next(get_db())
+        db.query(Image).delete()
+        db.commit()
+        logger.info("Deleted all images from database.")
+        return jsonify({"status": "success", "message": "All images deleted from database."})
     except Exception as e:
-        logger.error(f"Error deleting JSONs: {e}")
+        logger.error(f"Error deleting images from database: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 

@@ -14,6 +14,9 @@ class ImageService(ABC):
 
     def add_image_to_db(self, term_str: str, img: Any, api_source: str):
         pass
+
+    def update_image_in_db(self, img: Any):
+        pass
     
     def fetch_image(self, id: int) -> Optional[Any]:
         pass
