@@ -38,14 +38,14 @@ def drop_all_tables():
     logger.info("All tables dropped")
 
 
-def get_table_as_json(table_name: str) -> list[dict]:
+def get_query_as_json(query: str) -> list[dict]:
     db = next(get_db())
     try:
-        query = text(f"SELECT * FROM {table_name}")
-        result = db.execute(query).mappings().all()
+        text_query = text(query)
+        result = db.execute(text_query).mappings().all()
         return [dict(row) for row in result]
     except Exception as e:
-        logger.error(f"Database error while fetching {table_name}: {e}")
+        logger.error(f"Database error while fetching {query}: {e}")
         return []
     finally:
         db.close()

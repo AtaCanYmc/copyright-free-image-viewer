@@ -6,7 +6,7 @@ from utils.env_constants import project_name
 from utils.image_utils import convert_to_webp
 from utils.log_utils import logger
 from factory.image_service_factory import ImageServiceFactory
-from core.db import get_db, get_table_as_json
+from core.db import get_db, get_query_as_json
 from core.models import Image
 
 explorer_bp = Blueprint('explorer', __name__)
@@ -39,7 +39,8 @@ def convert_webp_action():
 def convert_db_json_action():
     try:
         logger.info(f"Converting images in database to JSON...")
-        json_data = get_table_as_json("images")
+        query = "SELECT i.*, st.term FROM images i JOIN search_terms st ON i.search_term_id = st.id"
+        json_data = get_query_as_json(query)
         file_path = os.path.join('assets', project_name, 'json_files', 'images.json')
         save_json_file(file_path, json_data)
         return jsonify({"status": "success", "message": "Conversion started/completed."})
