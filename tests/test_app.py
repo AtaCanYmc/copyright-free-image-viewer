@@ -4,7 +4,7 @@ from core.models import SearchTerm
 def test_home_page(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert b"Media Reviewer" in response.data
+    assert b"Copyright-free-image-viewer" in response.data
 
 def test_setup_page(client):
     response = client.get("/setup")

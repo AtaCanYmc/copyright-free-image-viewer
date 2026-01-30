@@ -58,7 +58,7 @@ class WgerService(ImageService):
             if 'suggestions' in response:
                 data = response['suggestions']
                 for img in data:
-                    w_img = self._convert_json_to_wger_image(img)
+                    w_img = self.json_to_image(img)
                     exercises.append(w_img)
             return exercises
         except Exception as e:
