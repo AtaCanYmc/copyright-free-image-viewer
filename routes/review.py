@@ -7,6 +7,7 @@ from core.models import Image, SearchTerm, ImageStatus
 from core.session import session
 from utils.common_utils import project_name, read_html_as_string, term_to_folder_name, is_download
 from utils.log_utils import logger
+from utils.common_utils import min_image_for_term
 
 # Import Services
 from services.pexels_service import PexelsService
@@ -36,6 +37,36 @@ def get_service_by_api(api_type: str) -> ImageService:
         return flickr_service
     else:
         raise ValueError(f"Unknown API type: {api_type}")
+
+
+def get_url_from_img(photo, api) -> str:
+    url = None
+
+    if api == 'pixabay':
+        url = photo.largeImageURL
+    elif api == 'pexels':
+        url = getattr(photo, "large2x", None) or getattr(photo, "original", None)
+    elif api == 'unsplash':
+        url = getattr(photo.urls, "full", None) or getattr(photo.urls, "regular", None)
+        from services.unsplash_service import remove_id_from_img_url
+        url = remove_id_from_img_url(url)
+    elif api == 'flickr':
+        url = getattr(photo, 'hi_res_url', None) or getattr(photo, 'url', None)
+
+    if not url:
+        src = getattr(photo, "src", None)
+        if isinstance(src, dict):
+            url = src.get("large2x") or src.get("original") or next(iter(src.values()), None)
+
+    return url
+
+
+def get_term_count(term: str) -> int:
+    return db.query(Image).filter(
+            Image.search_term == term,
+            Image.status == ImageStatus.APPROVED.value
+        ).count()
+
 
 def get_current_search_terms():
     db = next(get_db())
@@ -107,23 +138,7 @@ def current_photo_info():
         return cur_term, None, None, cur_term_saved_img_count
 
     photo = photos[pi]
-    url = None
-
-    if cur_api == 'pixabay':
-        url = photo.largeImageURL
-    elif cur_api == 'pexels':
-        url = getattr(photo, "large2x", None) or getattr(photo, "original", None)
-    elif cur_api == 'unsplash':
-        url = getattr(photo.urls, "full", None) or getattr(photo.urls, "regular", None)
-        from services.unsplash_service import remove_id_from_img_url
-        url = remove_id_from_img_url(url)
-    elif cur_api == 'flickr':
-        url = getattr(photo, 'hi_res_url', None) or getattr(photo, 'url', None)
-
-    if not url:
-        src = getattr(photo, "src", None)
-        if isinstance(src, dict):
-            url = src.get("large2x") or src.get("original") or next(iter(src.values()), None)
+    url = get_url_from_img(photo, cur_api)
             
     return cur_term, photo, url, cur_term_saved_img_count
 
@@ -134,15 +149,8 @@ def download_image(photo: Any, term: str, force_download=False):
 
     c_api = session.current_api
     folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
-    
-    if c_api == 'pixabay':
-        pixabay_service.download_image(photo, folder)
-    elif c_api == 'pexels':
-        pexels_service.download_image(photo, folder)
-    elif c_api == 'unsplash':
-        unsplash_service.download_image(photo, folder)
-    elif c_api == 'flickr':
-        flickr_service.download_image(photo, folder)
+    service = get_service_by_api(c_api)
+    service.download_image(photo, folder)
 
 
 @review_bp.route('/review')

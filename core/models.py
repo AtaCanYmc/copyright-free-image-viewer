@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from core.db import Base
 import enum
@@ -21,7 +21,8 @@ class SearchTerm(Base):
 
 class Image(Base):
     __tablename__ = "images"
-
+    __table_args__ = (UniqueConstraint('source_id', 'source_api', name='_source_api_uc'),)
+    
     id = Column(Integer, primary_key=True, index=True)
     source_id = Column(String, index=True, nullable=False) # ID from the external API (Pexels, Pixabay etc.)
     source_api = Column(String, nullable=False) # 'pexels', 'pixabay', 'unsplash', 'flickr'
@@ -38,6 +39,4 @@ class Image(Base):
     search_term = relationship("SearchTerm", back_populates="images")
     
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    # Unique constraint to prevent duplicate images for the same API
-    # __table_args__ = (UniqueConstraint('source_id', 'source_api', name='_source_api_uc'),)
+    
