@@ -143,14 +143,11 @@ def current_photo_info():
     return cur_term, photo, url, cur_term_saved_img_count
 
 
-def download_image(photo: Any, term: str, force_download=False):
-    if not is_download and not force_download:
-        return
-
+def download_image(img: Image):
     c_api = session.current_api
-    folder = f"assets/{project_name}/image_files/{term_to_folder_name(term)}"
+    folder = f"assets/{project_name}/image_files/{term_to_folder_name(img.search_term.term)}"
     service = get_service_by_api(c_api)
-    service.download_image(photo, folder)
+    service.download_image(img, folder)
 
 
 @review_bp.route('/review')
@@ -208,7 +205,6 @@ def decision():
 
     if action == "yes" and photo:
         add_image_to_db(term, photo, session.current_api)
-        download_image(photo, term)
         advance_after_action()
         return redirect(url_for("review.index"))
 
@@ -260,11 +256,16 @@ def term_decision():
 
 @review_bp.route("/download-all-images", methods=["POST"])
 def download_all_images():
-    # Placeholder: Bulk download is tricky with current persistent state change to DB.
-    # Future enhancement: Implement bulk download from DB.
+    db = next(get_db())
+    images = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).all()
+    for img in images:
+        download_image(img)
     return redirect(url_for("review.index"))
 
 @review_bp.route("/download-api-images", methods=["POST"])
 def download_api_images():
-    # Placeholder
+    service = get_service_by_api(session.current_api)
+    images = service.get_all_images()
+    for img in images:
+        download_image(img)
     return redirect(url_for("review.index"))
