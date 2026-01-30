@@ -77,6 +77,7 @@ class FlickrService(ImageService):
         img_id = str(getattr(img, 'id', 'unknown'))
         url_original = getattr(img, "hi_res_url", None)
         url_thumbnail = getattr(img, "url", None)
+        extension = getattr(img, "extension", "jpg")
         url_page = getattr(img, "url", None)
 
         new_image = Image(
@@ -86,7 +87,8 @@ class FlickrService(ImageService):
             url_thumbnail=url_thumbnail,
             url_page=url_page,
             status=ImageStatus.APPROVED.value,
-            search_term_id=term_obj.id
+            search_term_id=term_obj.id,
+            extension=extension
         )
         db.add(new_image)
         db.commit()

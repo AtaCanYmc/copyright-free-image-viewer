@@ -160,6 +160,7 @@ class PixabayService(ImageService):
         url_original = getattr(img, "largeImageURL", None)
         url_thumbnail = getattr(img, "previewURL", None)
         url_page = getattr(img, "pageURL", None)
+        extension = getattr(img, "extension", "jpg")
 
         new_image = Image(
             source_id=img_id,
@@ -168,7 +169,8 @@ class PixabayService(ImageService):
             url_thumbnail=url_thumbnail,
             url_page=url_page,
             status=ImageStatus.APPROVED.value,
-            search_term_id=term_obj.id
+            search_term_id=term_obj.id,
+            extension=extension
         )
         db.add(new_image)
         db.commit()
