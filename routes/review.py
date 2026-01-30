@@ -149,7 +149,12 @@ def index():
     if session.term_idx >= len(terms):
         db = next(get_db())
         total_downloaded = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).count()
-        return render_template_string(REVIEW_PAGE_HTML, finished=True, downloaded=total_downloaded, project_name=project_name)
+        return render_template_string(
+            REVIEW_PAGE_HTML,
+            finished=True,
+            downloaded=total_downloaded,
+            project_name=project_name
+        )
 
     term, photo, url, cur_term_saved_img_count = current_photo_info()
 

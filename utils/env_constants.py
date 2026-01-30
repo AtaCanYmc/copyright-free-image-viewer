@@ -13,7 +13,13 @@ if "pytest" in sys.modules or os.path.basename(sys.argv[0]) in ["pytest", "py.te
     project_name = "test_project"
 else:
     parser = argparse.ArgumentParser(description='Image Generator')
-    parser.add_argument('project_name', type=str, nargs='?', default=f'project_{str(uuid.uuid4())[:8]}', help='Project name')
+    parser.add_argument(
+        'project_name',
+        type=str,
+        nargs='?',
+        default=f'project_{str(uuid.uuid4())[:8]}',
+        help='Project name'
+    )
     args, _ = parser.parse_known_args()
     project_name = args.project_name
 

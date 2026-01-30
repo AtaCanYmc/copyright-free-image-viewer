@@ -69,7 +69,8 @@ class UnsplashImage:
 
 
 def remove_id_from_img_url(url: str) -> str:
-    if not url: return ""
+    if not url:
+        return ""
     if url.find('?ixid') != -1:
         parts = url.split('?ixid')
     else:
@@ -134,7 +135,8 @@ class UnsplashService(ImageService):
 
 
     def search_images(self, query: str, per_page: int = 15) -> list[UnsplashImage]:
-        if not self.api_key: return []
+        if not self.api_key:
+            return []
 
         url = f"{self.api_url}/search/photos"
         params = {

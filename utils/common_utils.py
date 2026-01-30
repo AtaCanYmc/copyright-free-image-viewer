@@ -6,6 +6,7 @@ from threading import Timer
 
 from flask import Response, send_file
 
+from utils.env_constants import project_name
 from utils.log_utils import logger
 
 

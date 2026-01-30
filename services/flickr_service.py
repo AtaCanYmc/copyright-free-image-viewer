@@ -50,7 +50,8 @@ class FlickrService(ImageService):
 
         for img in soup.find_all("img"):
             src = img.get("src")
-            if not src: continue
+            if not src:
+                continue
 
             if "staticflickr.com" in src:
                 hi_res = re.sub(r"_[a-z]\.jpg", "_b.jpg", src)

@@ -9,7 +9,7 @@ from utils.log_utils import logger
 
 def convert_to_webp(directory_path, quality=webp_compression_quality):
     """
-    Finds images in the given directory AND all subdirectories 
+    Finds images in the given directory AND all subdirectories
     and converts them to WebP format.
     """
     supported_extensions = [".jpg", ".jpeg", ".png"]

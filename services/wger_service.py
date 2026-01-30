@@ -47,7 +47,8 @@ class WgerService(ImageService):
         Note: Wger search endpoint pagination might work differently or not be supported in the same way.
         This implementation uses the existing search logic from wger_utils.
         """
-        # Wger search seems to use 'limit' but maybe not 'page' in the same way as standard paginated APIs in this specific endpoint?
+        # Wger search seems to use 'limit' but maybe not 'page' in the same way
+        # as standard paginated APIs in this specific endpoint?
         # The original utils used 'limit'. We will map per_page to limit.
         url = self._generate_search_url(term, limit=per_page)
         exercises = []
