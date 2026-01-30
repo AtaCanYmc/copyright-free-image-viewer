@@ -14,4 +14,6 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["python", "app.py"]
+VOLUME ["/app/assets"]
+
+CMD ["python", "app.py", "<project_name>"]
