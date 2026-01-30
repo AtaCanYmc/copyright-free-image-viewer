@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from services.pexels_service import PexelsService
 
 
+@patch.dict('os.environ', {'PEXELS_API_KEY': 'dummy_key'})
 @patch('services.pexels_service.API')
 def test_pexels_search(mock_api_cls):
     # Setup mock
