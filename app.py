@@ -10,10 +10,8 @@ from routes.gallery import gallery_bp
 from routes.review import review_bp
 from routes.settings import settings_bp
 from routes.setup import setup_bp
-from utils.common_utils import (create_folders_if_not_exist,
-                                project_name, read_html_as_string,
-                                app_port, app_host, use_debug_mode,
-                                use_reloader, delete_files_if_exist)
+from utils.common_utils import create_folders_if_not_exist, read_html_as_string, delete_files_if_exist
+from utils.env_constants import project_name, app_host, app_port, use_debug_mode, use_reloader
 
 # Initialize Database
 init_db()

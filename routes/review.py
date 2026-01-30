@@ -5,7 +5,8 @@ from flask import Blueprint, redirect, url_for, render_template_string, request
 from core.db import get_db
 from core.models import Image, SearchTerm, ImageStatus
 from core.session import session
-from utils.common_utils import project_name, read_html_as_string, term_to_folder_name
+from utils.common_utils import read_html_as_string, term_to_folder_name
+from utils.env_constants import project_name
 from utils.log_utils import logger
 from utils.download_utils import download_image
 
@@ -259,6 +260,7 @@ def download_all_images():
     for img in images:
         download_db_image(img)
     return redirect(url_for("review.index"))
+
 
 @review_bp.route("/download-api-images", methods=["POST"])
 def download_api_images():

@@ -2,7 +2,8 @@ import os
 import requests
 from dotenv import load_dotenv
 from core.models import Image
-from utils.common_utils import create_folders_if_not_exist, max_image_kb
+from utils.common_utils import create_folders_if_not_exist
+from utils.env_constants import max_image_kb
 from utils.log_utils import logger
 
 load_dotenv()

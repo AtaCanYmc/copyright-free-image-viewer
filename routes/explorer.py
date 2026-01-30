@@ -2,7 +2,8 @@ import os
 
 from flask import Blueprint, render_template_string
 
-from utils.common_utils import read_html_as_string, get_directory_tree, project_name
+from utils.common_utils import read_html_as_string, get_directory_tree
+from utils.env_constants import project_name
 
 explorer_bp = Blueprint('explorer', __name__)
 EXPLORER_PAGE_HTML = read_html_as_string("templates/explorer_page.html")

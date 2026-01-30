@@ -1,13 +1,9 @@
 import logging
 import os
-import uuid
 from datetime import datetime
+from utils.env_constants import project_name
 
-from dotenv import load_dotenv
 
-load_dotenv()
-
-project_name = os.getenv('PROJECT_NAME', f'project_{str(uuid.uuid4())[:8]}')
 LOG_DIR = f"assets/{project_name}/log_files"
 
 formatter = logging.Formatter(

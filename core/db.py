@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, declarative_base
-from utils.common_utils import project_name
+from utils.env_constants import project_name
 
 # Create database directory if it doesn't exist
 DB_FOLDER = f"assets/{project_name}/database"

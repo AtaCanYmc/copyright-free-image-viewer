@@ -3,7 +3,8 @@ import shutil
 from flask import Blueprint, request, redirect, url_for, render_template_string
 from core.db import get_db
 from core.models import Image, SearchTerm, ImageStatus
-from utils.common_utils import project_name, get_project_folder_as_zip, read_html_as_string
+from utils.common_utils import get_project_folder_as_zip, read_html_as_string
+from utils.env_constants import project_name
 from utils.log_utils import logger
 
 gallery_bp = Blueprint('gallery', __name__)
