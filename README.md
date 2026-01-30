@@ -82,28 +82,54 @@ The fastest way to get started. ensuring a clean environment.
 ## 📖 Usage Workflow
 
 ### 1. Project Setup
-- Open the app and navigate to **Step 1: Setup**.
-- Enter your desired search terms (e.g., "mountain landscape", "cyberpunk city"). These terms drive the initial image fetching process.
+![Home Dashboard](examples/app_images/home.png)
+- **Launch**: Start the app and define your project name via command line argument `python app.py <project_name>`.
+- **Dashboard**: The Home screen gives you a quick overview of your progress, including total search terms and downloaded files across all APIs.
+- **Setup Terms**: Navigate to **Setup** to input the keywords you want to search for (e.g., "mountain landscape", "cyberpunk city"). These terms drive the initial image fetching process.
+![Setup Terms](examples/app_images/setup_terms.png)
+
 
 ### 2. Curation (Review)
-- Go to **Step 2: Review**.
-- You will see images fetched from your configured APIs.
-- **Approve (Green)** to download high-res version to your local library.
-- **Reject (Red)** to skip.
-- **Switch API**: Use the buttons to toggle between Pexels, Pixabay, etc., to find the best variety.
+![Review Interface](examples/app_images/review.png)
+- **Tinder-Style Review**: Go to the **Review** tab to see live results.
+- **Swipe Actions**:
+  - **Save (Green Button)**: Downloads the high-res image to your local project folder.
+  - **Save All (Green Button)**: Batch downloads all currently loaded images for the term.
+  - **Skip (Red Button)**: Discards the image and moves to the next.
+- **Switch API**: Toggle specific providers (Pexels, Pixabay, etc.) on the right panel to find the best results for your specific detailed terms.
 
 ### 3. Management (Explorer)
-- Navigate to the **Explorer** tab to manage your assets.
-- View the folder structure of downloaded images.
-- **Actions Menu**:
-  - **Convert to WebP**: optimize storage space.
-  - **Export Data**: Generate `images.csv` or `images.json` from your curation database.
-  - **Maintenance**: Clear database or delete specific file groups.
+![Explorer File System](examples/app_images/explorer.png)
+- **File System View**: The **Explorer** tab mirrors your actual local directory structure (`assets/<project_name>`).
+- **Maintenance Actions**:
+  - **Convert to WebP**: Run a batch process to convert all downloaded JPG/PNGs to WebP for 30-50% storage savings.
+  - **Refetch Images**: If you need more variety, trigger a background refetch for specific APIs.
+  - **Data Export**: Generate `images.csv` or `images.json` containing metadata (IDs, source URLs, tags) for all approved assets.
+
 
 ### 4. Final Review & Export (Gallery)
-- The **Gallery** shows all your approved assets.
-- Use the **Search Bar** to verify specific images.
-- Click **"Download Project as ZIP"** in the header to bundle everything for your creative work.
+![Gallery View](examples/app_images/gallery.png)
+- **Visual Verification**: The **Gallery** displays all your "Approved" assets in a masonry layout.
+- **Search & Filter**: Use the dynamic search bar to find specific images by ID or Source.
+- **Delete**: Remove unwanted assets from both disk and database.
+- **Download**: Click **"Download Project as ZIP"** in the header to bundle everything for your creative work.
+
+---
+
+## ⚙️ Advanced Configuration (`.env`)
+
+Fine-tune the application behavior by editing your `.env` file:
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `PROJECT_NAME` | `my_project` | Default project name if not specified in CLI. |
+| `APP_PORT` | `8080` | Port to run the web server on. |
+| `DEBUG` | `False` | Enable Flask debug mode (auto-reload). |
+| `DOWNLOAD_IMAGES` | `True` | Set to `False` to only save metadata without downloading files. |
+| `MAX_KB_IMAGE_SIZE` | `512` | Warn or resize if images exceed this size (kb). |
+| `WEBP_COMPRESSION_QUALITY` | `80` | Quality level (0-100) for WebP conversion tool. |
+| `SEARCH_PER_PAGE` | `30` | Number of images to fetch per API request page. |
+| `MIN_IMAGES_PER_TERM` | `1` | Minimum approved images required to mark a term as "Done". |
 
 ---
 
