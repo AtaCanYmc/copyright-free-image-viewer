@@ -8,6 +8,7 @@ from utils.env_constants import project_name, search_per_page, min_image_for_ter
 from utils.log_utils import logger
 from utils.download_utils import download_image
 from factory.image_service_factory import ImageServiceFactory
+from sqlalchemy import func
 
 review_bp = Blueprint('review', __name__)
 REVIEW_PAGE_HTML = read_html_as_string("templates/review_page.html")
@@ -35,11 +36,17 @@ def get_url_from_img(photo, api) -> str:
     return url
 
 
-def get_term_count(term: str) -> int:
-    return db.query(Image).filter(
-            Image.search_term == term,
-            Image.status == ImageStatus.APPROVED.value
-        ).count()
+def get_done_term_count() -> int:
+    db = next(get_db())
+    done_terms_count = (
+        db.query(SearchTerm)
+        .join(Image, SearchTerm.id == Image.search_term_id)
+        .filter(Image.status == ImageStatus.APPROVED.value)
+        .group_by(SearchTerm.id)
+        .having(func.count(Image.id) >= min_image_for_term)
+        .count()
+    )
+    return done_terms_count
 
 
 def get_current_search_terms():
@@ -161,7 +168,8 @@ def index():
         downloaded=total_downloaded,
         current_api=session.current_api,
         term_photo_counter=cur_term_saved_img_count,
-        project_name=project_name
+        project_name=project_name,
+        done_terms_count=get_done_term_count()
     )
 
 
