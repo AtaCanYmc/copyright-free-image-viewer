@@ -1,13 +1,13 @@
 import os
 import shutil
 from flask import Blueprint, render_template_string, jsonify
-from utils.common_utils import read_html_as_string, get_directory_tree
+from utils.common_utils import read_html_as_string, get_directory_tree, save_json_file
 from utils.env_constants import project_name
 from utils.image_utils import convert_to_webp
 from utils.log_utils import logger
 from factory.image_service_factory import ImageServiceFactory
-from core.db import get_db
-from core.models import SearchTerm, Image
+from core.db import get_db, get_table_as_json
+from core.models import Image
 
 explorer_bp = Blueprint('explorer', __name__)
 EXPLORER_PAGE_HTML = read_html_as_string("templates/explorer_page.html")
@@ -32,6 +32,19 @@ def convert_webp_action():
         return jsonify({"status": "success", "message": "Conversion started/completed."})
     except Exception as e:
         logger.error(f"Error converting to webp: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@explorer_bp.route('/explorer/actions/convert-db-json', methods=['POST'])
+def convert_db_json_action():
+    try:
+        logger.info(f"Converting images in database to JSON...")
+        json_data = get_table_as_json("images")
+        file_path = os.path.join('assets', project_name, 'json_files', 'images.json')
+        save_json_file(file_path, json_data)
+        return jsonify({"status": "success", "message": "Conversion started/completed."})
+    except Exception as e:
+        logger.error(f"Error converting to json: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
