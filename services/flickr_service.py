@@ -26,6 +26,11 @@ class FlickrService(ImageService):
         self.headers = {"User-Agent": "Mozilla/5.0"}
 
 
+    def get_all_images(self) -> list[Image]:
+        db = next(get_db())
+        return db.query(Image).filter(Image.source_api == 'flickr').all()
+
+
     def search_images(self, query: str, per_page: int = 15) -> list[FlickerImage]:
         params = {
             "text": query,

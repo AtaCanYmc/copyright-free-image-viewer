@@ -35,6 +35,11 @@ class PexelsService(ImageService):
             return []
 
 
+    def get_all_images(self) -> list[Image]:
+        db = next(get_db())
+        return db.query(Image).filter(Image.source_api == 'pexels').all()
+
+
     def find_download_url(self, photo: Photo) -> Tuple[Optional[str], float]:
         url_list = [photo.original, photo.large2x, photo.large, photo.medium, photo.small]
         url_indx = 0

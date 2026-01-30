@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import Any, Optional, Dict, Tuple
+from core.models import Image
 
 class ImageService(ABC):
     def __init__(self):
@@ -12,6 +13,9 @@ class ImageService(ABC):
         pass
     
     def download_image(self, photo: Any, folder_path: str) -> bool:
+        pass
+
+    def get_all_images(self) -> list[Image]:
         pass
 
     def add_image_to_db(self, term_str: str, img: Any, api_source: str):

@@ -128,6 +128,11 @@ class UnsplashService(ImageService):
         )
 
 
+    def get_all_images(self) -> list[Image]:
+        db = next(get_db())
+        return db.query(Image).filter(Image.source_api == 'unsplash').all()
+
+
     def search_images(self, query: str, per_page: int = 15) -> List[UnsplashImage]:
         if not self.api_key: return []
         

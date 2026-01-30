@@ -71,6 +71,11 @@ class PixabayService(ImageService):
         )
 
 
+    def get_all_images(self) -> list[Image]:
+        db = next(get_db())
+        return db.query(Image).filter(Image.source_api == 'pixabay').all()
+
+
     def search_images(self, term: str, page: int = 1, per_page: int = 15) -> List[PixabayImage]:
         if not self.api_key:
             return []
