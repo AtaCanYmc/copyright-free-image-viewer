@@ -6,7 +6,7 @@ from core.db import get_db
 from core.models import Image, SearchTerm, ImageStatus
 from core.session import session
 from utils.common_utils import read_html_as_string, term_to_folder_name
-from utils.env_constants import project_name
+from utils.env_constants import project_name, search_per_page
 from utils.log_utils import logger
 from utils.download_utils import download_image
 from factory.image_service_factory import ImageServiceFactory
@@ -65,7 +65,7 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
 
     try:
         service = ImageServiceFactory.get_service(api_type)
-        photos = service.search_images(term, per_page=30)
+        photos = service.search_images(term, per_page=search_per_page)
     except Exception as e:
         logger.error(f"Error fetching photos: {e}")
         photos = []
@@ -180,6 +180,14 @@ def decision():
     if action == "yes" and photo:
         add_image_to_db(term, photo, session.current_api)
         advance_after_action()
+        return redirect(url_for("review.index"))
+
+    if action == "all_yes":
+        photos = get_photos_for_term_idx(session.term_idx)
+        for photo in photos:
+            add_image_to_db(term, photo, session.current_api)
+        session.term_idx += 1
+        session.photo_idx = 0
         return redirect(url_for("review.index"))
 
     if action == "no":

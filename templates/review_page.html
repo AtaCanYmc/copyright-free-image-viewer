@@ -182,7 +182,19 @@
                                     stroke-linejoin="round">
                                     <path d="M20 6 9 17l-5-5" />
                                 </svg>
-                                SAVE & NEXT
+                                SAVE
+                            </button>
+                        </form>
+                        <form method="post" action="{{ url_for('review.decision') }}">
+                            <input type="hidden" name="action" value="all_yes">
+                            <button type="submit"
+                                class="btn-transition flex items-center gap-2 px-12 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M20 6 9 17l-5-5" />
+                                </svg>
+                                SAVE ALL
                             </button>
                         </form>
                     </div>

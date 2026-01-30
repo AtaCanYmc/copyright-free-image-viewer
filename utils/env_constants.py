@@ -24,3 +24,4 @@ use_debug_mode = os.getenv('DEBUG', 'false').lower() == 'true'
 use_reloader = os.getenv('USE_RELOADER', 'false').lower() == 'true'
 max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
 webp_compression_quality = int(os.getenv('WEBP_COMPRESSION_QUALITY', '80'))
+search_per_page = int(os.getenv('SEARCH_PER_PAGE', '30'))
