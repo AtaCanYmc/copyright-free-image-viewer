@@ -1,7 +1,7 @@
 import os
 import shutil
 from flask import Blueprint, render_template_string, jsonify
-from utils.common_utils import read_html_as_string, get_directory_tree, save_json_file
+from utils.common_utils import read_html_as_string, get_directory_tree, save_json_file, save_csv_file
 from utils.env_constants import project_name
 from utils.image_utils import convert_to_webp
 from utils.log_utils import logger
@@ -46,6 +46,20 @@ def convert_db_json_action():
         return jsonify({"status": "success", "message": "Conversion started/completed."})
     except Exception as e:
         logger.error(f"Error converting to json: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@explorer_bp.route('/explorer/actions/convert-db-csv', methods=['POST'])
+def convert_db_csv_action():
+    try:
+        logger.info(f"Converting images in database to CSV...")
+        query = "SELECT i.*, st.term FROM images i JOIN search_terms st ON i.search_term_id = st.id"
+        csv_data = get_query_as_json(query)
+        file_path = os.path.join('assets', project_name, 'csv_files', 'images.csv')
+        save_csv_file(file_path, csv_data)
+        return jsonify({"status": "success", "message": "Conversion started/completed."})
+    except Exception as e:
+        logger.error(f"Error converting to csv: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 

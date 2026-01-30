@@ -3,6 +3,7 @@ import shutil
 from threading import Timer
 import json
 from flask import send_file, Response
+import csv
 
 from utils.log_utils import logger
 
@@ -37,6 +38,14 @@ def read_json_file(file_path: str) -> dict:
 def save_json_file(file_path: str, data: dict):
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
+
+
+def save_csv_file(file_path: str, data: list[dict]):
+    with open(file_path, 'w', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(data[0].keys())
+        for item in data:
+            writer.writerow(item.values())
 
 
 def delete_file_if_exists(file_path: str):

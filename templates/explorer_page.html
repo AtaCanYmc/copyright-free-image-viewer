@@ -64,6 +64,8 @@
                     url = '/explorer/actions/delete-db';
                 } else if (action === 'convert-db-json') {
                     url = '/explorer/actions/convert-db-json';
+                } else if (action === 'convert-db-csv') {
+                    url = '/explorer/actions/convert-db-csv';
                 }
 
                 if (!url) {
@@ -269,6 +271,16 @@
                         <button type="button" onclick="runAction(event, 'convert-db-json')"
                             class="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl transition-all group">
                             <span class="text-sm font-semibold">Convert image data to JSON</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform">
+                                <path d="m9 18 6-6-6-6" />
+                            </svg>
+                        </button>
+
+                        <button type="button" onclick="runAction(event, 'convert-db-csv')"
+                            class="w-full flex items-center justify-between px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl transition-all group">
+                            <span class="text-sm font-semibold">Convert image data to CSV</span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                 stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform">

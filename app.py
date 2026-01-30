@@ -22,6 +22,8 @@ create_folders_if_not_exist([
     "assets/zip_files",
     f"assets/{project_name}",
     f"assets/{project_name}/image_files",
+    f"assets/{project_name}/json_files",
+    f"assets/{project_name}/csv_files",
     f"assets/{project_name}/log_files"
 ])
 
