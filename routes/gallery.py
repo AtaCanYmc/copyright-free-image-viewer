@@ -3,13 +3,12 @@ import shutil
 from flask import Blueprint, request, redirect, url_for, render_template_string
 from core.db import get_db
 from core.models import Image, SearchTerm, ImageStatus
-from utils.base_image_utils import save_base_images, get_base_images_from_db
-from utils.common_utils import project_name, get_image_url, get_thumbnail, \
-    read_html_as_string, get_project_folder_as_zip
+from utils.common_utils import project_name, get_project_folder_as_zip, read_html_as_string
 from utils.log_utils import logger
 
 gallery_bp = Blueprint('gallery', __name__)
 GALLERY_PAGE_HTML = read_html_as_string("templates/gallery_page.html")
+
 
 def image_to_dict(image):
     return {
@@ -79,7 +78,6 @@ def delete_image():
 @gallery_bp.route('/download-zip')
 def download_zip():
     try:
-        save_base_images() 
         return get_project_folder_as_zip()
     except Exception as e:
         logger.error(f"Error creating zip file: {e}")

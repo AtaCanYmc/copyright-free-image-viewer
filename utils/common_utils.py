@@ -75,18 +75,11 @@ def create_files_if_not_exist(file_paths: list[str]):
                 file.write('')
 
 
-def read_search_terms(file_path: str, remove_keys: list[str]) -> list[str]:
-    with open(file_path, 'r') as file:
-        terms = [line.strip() for line in file if line.strip()
-                 and term_to_folder_name(line.strip()) not in remove_keys]
-    return terms
-
-
 def read_html_as_string(file_path: str) -> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
 
-
+        
 def read_json_file(file_path: str) -> dict:
     with open(file_path, 'r', encoding='utf-8') as file:
         return json.load(file)
@@ -95,11 +88,6 @@ def read_json_file(file_path: str) -> dict:
 def save_json_file(file_path: str, data: dict):
     with open(file_path, 'w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
-
-
-def save_text_file(file_path: str, data: str):
-    with open(file_path, 'w', encoding='utf-8') as file:
-        file.write(data)
 
 
 def delete_file_if_exists(file_path: str):
@@ -138,52 +126,3 @@ def get_project_folder_as_zip() -> tuple[Response, int]:
     # delete the zip file after 120 seconds
     Timer(120, delete_file_if_exists, args=[f"{zip_path}.zip"]).start()
     return send_file(f"{zip_path}.zip", as_attachment=True), 200
-
-
-def get_image_url(img: dict) -> str:
-    if not img:
-        return "#"
-    if img.get('apiType') == 'pexels':
-        return img.get('original') or img.get('large2x') or img.get('url')
-    elif img.get('apiType') == 'pixabay':
-        return img.get('fullHDURL') or img.get('largeImageURL') or img.get('url')
-    elif img.get('apiType') == 'unsplash':
-        urls = img.get('urls', {})
-        return urls.get('full') or urls.get('regular') or urls.get('small') or img.get('url')
-    elif img.get('apiType') == 'flickr':
-        return img.get('highResUrl') or img.get('url')
-    return img.get('highResUrl') or img.get('original') or img.get('url') or "#"
-
-
-def get_thumbnail(img: dict):
-    if img.get('apiType') == 'pexels':
-        return img.get('tiny') or img.get('small')
-    elif img.get('apiType') == 'pixabay':
-        return img.get('previewURL')
-    elif img.get('apiType') == 'unsplash':
-        urls = img.get('urls', {})
-        return urls.get('thumb') or urls.get('small')
-    elif img.get('apiType') == 'flickr':
-        return img.get('url')
-    return '#'
-
-
-def change_image_in_json(json_path, img_id, new_img):
-    json_data = read_json_file(json_path)
-    updated = False
-
-    for term, images in json_data.items():
-        for i, image in enumerate(images):
-            if image.get('id') == img_id:
-                images[i] = new_img
-                updated = True
-                logger.info(f"ID: {img_id} updated (in {term}).")
-                break
-
-        if updated:
-            break
-
-    if updated:
-        save_json_file(json_path, json_data)
-    else:
-        logger.error(f"ID: {img_id} not found on {json_path}")
