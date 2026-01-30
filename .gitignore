@@ -1,5 +1,4 @@
-/assets/car-quiz/
-/assets/mushroom-quiz/
+/assets/*
 /examples/
 .idea
 .env
