@@ -9,35 +9,10 @@ from utils.common_utils import read_html_as_string, term_to_folder_name
 from utils.env_constants import project_name
 from utils.log_utils import logger
 from utils.download_utils import download_image
-
-# Import Services
-from services.pexels_service import PexelsService
-from services.pixabay_service import PixabayService
-from services.unsplash_service import UnsplashService
-from services.flickr_service import FlickrService
-from services.image_service import ImageService
-
-# Instantiate Services
-pexels_service = PexelsService()
-pixabay_service = PixabayService()
-unsplash_service = UnsplashService()
-flickr_service = FlickrService()
+from factory.image_service_factory import ImageServiceFactory
 
 review_bp = Blueprint('review', __name__)
 REVIEW_PAGE_HTML = read_html_as_string("templates/review_page.html")
-
-
-def get_service_by_api(api_type: str) -> ImageService:
-    if api_type == 'pexels':
-        return pexels_service
-    elif api_type == 'pixabay':
-        return pixabay_service
-    elif api_type == 'unsplash':
-        return unsplash_service
-    elif api_type == 'flickr':
-        return flickr_service
-    else:
-        raise ValueError(f"Unknown API type: {api_type}")
 
 
 def get_url_from_img(photo, api) -> str:
@@ -89,7 +64,7 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
     photos = []
 
     try:
-        service = get_service_by_api(api_type)
+        service = ImageServiceFactory.get_service(api_type)
         photos = service.search_images(term, per_page=30)
     except Exception as e:
         logger.error(f"Error fetching photos: {e}")
@@ -100,7 +75,7 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
 
 
 def add_image_to_db(term_str: str, img: Any, api_source: str):
-    service = get_service_by_api(api_source)
+    service = ImageServiceFactory.get_service(api_source)
     service.add_image_to_db(term_str, img, api_source)
 
 
@@ -264,7 +239,7 @@ def download_all_images():
 
 @review_bp.route("/download-api-images", methods=["POST"])
 def download_api_images():
-    service = get_service_by_api(session.current_api)
+    service = ImageServiceFactory.get_service(session.current_api)
     images = service.get_all_images()
     for img in images:
         download_db_image(img)

@@ -1,5 +1,5 @@
 /assets/*
-/examples/
-.idea
+/examples/*
+/.idea/*
+/.venv/*
 .env
-.venv
