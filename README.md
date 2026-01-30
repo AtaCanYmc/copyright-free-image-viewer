@@ -1,103 +1,130 @@
-# 📸 Media Reviewer Pro
+# 📸 copyright-free-image-viewer
 
-Media Reviewer is a robust media procurement and curation tool built with Flask. It allows you to search, preview, and manage stock images from multiple APIs (Pexels, Pixabay, Unsplash, and Flickr) in one centralized workspace.
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.0%2B-black?style=for-the-badge&logo=flask&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-
+**Copyright-free-image-viewer** is a robust, open-source media procurement and curation platform. It unifies search, review, and asset management processes into a single, elegant interface, connecting seamlessly to major stock image providers (Pexels, Pixabay, Unsplash, Flickr) to streamline your creative workflow.
 
 ## 🚀 Key Features
 
-* **Multi-API Integration:** Seamlessly fetch images from Pexels, Pixabay, Unsplash, and Flickr.
-* **Smart Curation (Review Mode):** Quickly approve (✅) or reject (❌) images with real-time saving.
-* **Dynamic Gallery:** Advanced filtering system by search terms, Image ID, or API source.
-* **Asset Management:** Automated local storage of high-res images and one-click **ZIP** export.
-* **Docker Ready:** Containerized environment for instant deployment without dependency issues.
-* **Professional Logging:** Detailed system logs tracking downloads, deletions, and errors in the `logs/` directory.
+### 🔍 Unified Search & Curation
+- **Multi-API Support**: Fetch high-quality images simultaneously from **Pexels**, **Pixabay**, **Unsplash**, and **Flickr**.
+- **Smart Queue**: Automatic deduplication and session management ensure you never review the same image twice.
+- **Tinder-Style Review**: Rapidly build your collection with a "Yes/No" swipe interface designed for speed.
+
+### 📂 Advanced Asset Explorer
+- **Visual File System**: Browse your project's physical directory structure directly from the web interface.
+- **Maintenance Actions**:
+  - **WebP Conversion**: Batch convert your entire library to optimized WebP format with one click.
+  - **Refetch**: Automatically replenish your queue for specific terms from any API source.
+  - **Data Export**: Export your entire database metadata to **JSON** or **CSV** formats for external analysis.
+
+### 🖼️ Dynamic Gallery
+- **Filtering**: Powerful search bar to filter assets by image ID, source API, or keyword tags.
+- **Management**: Delete individual images or bulk-clear entire categories.
+- **Download**: One-click **ZIP** export of your curated selection for immediate use in projects.
+
+### 🛠️ Production Ready
+- **Dockerized**: specific `docker-compose` setup for instant, reproducible deployments.
+- **Robust Logging**: Detailed logging system tracks every API call, download, and error for total transparency.
+- **Database Persistence**: SQLite integration ensures your curation decisions and metadata are safely stored.
 
 ---
 
 ## 🛠 Installation & Setup
 
-### 1. Requirements
-* **Docker & Docker Compose** (Recommended)
-* OR **Python 3.10+**
+### Option 1: Docker (Recommended)
+The fastest way to get started. ensuring a clean environment.
 
-### 2. Environment Variables (.env)
-Create a `.env` file in the root directory and add your API keys:
-```env
-# API Keys
-PEXELS_API_KEY=your_pexels_key
-PIXABAY_API_KEY=your_pixabay_key
-UNSPLASH_ACCESS_KEY=your_unsplash_key
-FLICKR_API_KEY=your_flickr_key
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/AtaCanYmc/copyright-free-image-viewer.git
+   cd copyright-free-image-viewer
+   ```
 
-# Project Configuration
-PROJECT_NAME=my_project
-APP_PORT=8080
-DEBUG=True
-DOWNLOAD_IMAGES=True
-```
+2. **Configure Environment:**
+   Create a `.env` file in the root directory (use `.env.example` as a template):
+   ```env
+   # API Keys (Get these from respective developer portals)
+   PEXELS_API_KEY=your_key_here
+   PIXABAY_API_KEY=your_key_here
+   UNSPLASH_ACCESS_KEY=your_key_here
+   FLICKR_API_KEY=your_key_here
 
-### 3. Running with Docker (Quickest)
-```bash
-  docker-compose up --build
-```
-Once started, visit http://localhost:8080 in your browser.
+   # Configuration
+   APP_PORT=8080
+   DEBUG=True
+   ```
 
-### 4. Manual Installation
-```bash
-    pip install -r requirements.txt
-    python -m pytest  # Optional: Run tests
-    python app.py
-```
+3. **Launch:**
+   ```bash
+   docker-compose up --build <project_name>
+   ```
+   Visit **http://localhost:8080** to start curating.
 
-## 📂 Project Structure
+### Option 2: Local Python Setup
 
-The project follows a modular Blueprint architecture for better maintainability:
+1. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-- **assets/:** Stores downloaded images and metadata (JSON files).
-- **core/:** Contains centralized state management and core business logic.
-- **routes/:** Modular page controllers (Gallery, Review, Setup, etc.).
-- **utils/:** Utility scripts for API wrappers, logging, and file handling.
-- **log_utils.py:** Custom logging system for file & console.
-- **common_utils.py:** Shared file and URL helper functions.
-- **logs/:** Auto-generated daily system logs.
-- **templates/:** HTML5 templates styled with Tailwind CSS.
-- **docker-compose.yml:** Orchestration for the containerized app.
+2. **Run Application:**
+   ```bash
+   python app.py <project_name>
+   ```
 
-## 📖 Usage Flow
+---
 
-1. **Step 1: Configuration & Setup** ⚙️
-   * Enter your target keywords in the **Setup** page or edit `search.txt` directly.
-   * Configure your API keys in the `.env` file to enable image fetching.
+## 📖 Usage Workflow
 
-2. **Step 2: Curation & Review** ✅
-   * Navigate to the **Review** tab to browse live photos from selected APIs.
-   * Use the **Yes** button to approve and download, or **No** to skip.
-   * Switch between different providers (Pexels, Pixabay, etc.) anytime during the session.
+### 1. Project Setup
+- Open the app and navigate to **Step 1: Setup**.
+- Enter your desired search terms (e.g., "mountain landscape", "cyberpunk city"). These terms drive the initial image fetching process.
 
-3. **Step 3: Management & Gallery** 🖼️
-   * View all approved assets in the **Gallery**, automatically organized by search terms.
-   * Use the **Dynamic Search Bar** to filter your collection by Image ID, source API, or term.
-   * Delete unwanted images with the **Trash icon**; this removes the file from both your disk and the database.
+### 2. Curation (Review)
+- Go to **Step 2: Review**.
+- You will see images fetched from your configured APIs.
+- **Approve (Green)** to download high-res version to your local library.
+- **Reject (Red)** to skip.
+- **Switch API**: Use the buttons to toggle between Pexels, Pixabay, etc., to find the best variety.
 
-4. **Step 4: Exporting Assets** 📦
-   * Once your curation is complete, go to the **Project Assets** header.
-   * Click **Download Project as ZIP** to get a structured archive containing all images and metadata JSONs.
+### 3. Management (Explorer)
+- Navigate to the **Explorer** tab to manage your assets.
+- View the folder structure of downloaded images.
+- **Actions Menu**:
+  - **Convert to WebP**: optimize storage space.
+  - **Export Data**: Generate `images.csv` or `images.json` from your curation database.
+  - **Maintenance**: Clear database or delete specific file groups.
 
-## 🛡️ System Logging
+### 4. Final Review & Export (Gallery)
+- The **Gallery** shows all your approved assets.
+- Use the **Search Bar** to verify specific images.
+- Click **"Download Project as ZIP"** in the header to bundle everything for your creative work.
 
-The application implements a robust logging architecture to monitor background processes, API interactions, and file operations.
+---
 
-### 📝 Log Categories
-* **Curation Actions:** Tracks every "Approve" or "Reject" decision with term and ID details.
-* **API Events:** Logs requests to Pexels, Pixabay, Unsplash, and Flickr, including any rate-limiting or connection issues.
-* **File Operations:** Monitors image downloads, ZIP creations, and permanent deletions from the disk.
-* **Error Tracking:** Captures Python exceptions and Flask 500 errors with full context for easier debugging.
+## 🤝 Contributing
 
-### 📂 Storage & Format
-Logs are managed via `utils/log_utils.py` and stored in a structured format:
-* **Console Output:** Real-time, color-coded feedback in your terminal or Docker dashboard.
-* **Persistent Logs:** Saved daily in the `logs/` directory using the naming convention `app_YYYYMMDD.log`.
+We welcome contributions to make Media Reviewer Pro even better!
 
-**Example Log Entry:**
-`2026-01-02 00:15:48 | INFO | MediaReviewer | APPROVED: [toyota_corolla] - ID: 12345 - Source: pexels`
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<p align="center">
+  Built with ❤️ by Open Source Contributors
+</p>
