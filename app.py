@@ -27,7 +27,6 @@ create_folders_if_not_exist([
 
 # Clean up temporary files
 delete_files_if_exist("assets/zip_files")
-delete_files_if_exist(f"assets/{project_name}/log_files")
 
 api_list = ['pexels', 'pixabay', 'unsplash', 'flickr']
 
