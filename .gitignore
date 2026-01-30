@@ -1,5 +1,4 @@
 /assets/*
-/examples/*
 /.idea/*
 /.venv/*
 .DS_Store

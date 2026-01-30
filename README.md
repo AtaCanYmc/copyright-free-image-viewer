@@ -109,7 +109,7 @@ The fastest way to get started. ensuring a clean environment.
 
 ## 🤝 Contributing
 
-We welcome contributions to make Media Reviewer Pro even better!
+We welcome contributions to make Copyright-free-image-viewer even better!
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
