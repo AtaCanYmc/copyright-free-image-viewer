@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Any
+from typing import Any
 from dataclasses import dataclass
 import requests
 from bs4 import BeautifulSoup
@@ -8,7 +8,6 @@ import os
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
-from utils.common_utils import get_remote_size, term_to_folder_name
 from utils.log_utils import logger
 
 load_dotenv()
@@ -65,39 +64,6 @@ class FlickrService(ImageService):
                 ))
 
         return images[:per_page]
-
-
-    def find_download_url(self, img: FlickerImage) -> Tuple[Optional[str], float]:
-        return img.hi_res_url, get_remote_size(img.hi_res_url).get('kb_decimal', 0)
-
-
-    def download_image(self, img: FlickerImage, folder_path: str) -> bool:
-        url, content_kb = self.find_download_url(img)
-        
-        if not url:
-            return False
-        
-        if content_kb > self.max_image_kb:
-            logger.info(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
-            return False
-
-        try:
-            image_data = requests.get(url, timeout=30)
-        except requests.RequestException as e:
-            logger.error(f"Error downloading image {img.id} from Flickr: {e}")
-            return False
-            
-        extension = url.split('.')[-1]
-        image_path = os.path.join(folder_path, f"{img.id}.{extension}")
-        
-        try:
-            with open(image_path, 'wb') as file:
-                file.write(image_data.content)
-            logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
-            return True
-        except Exception as e:
-            logger.error(f"Error writing file {image_path}: {e}")
-            return False
 
 
     def add_image_to_db(self, term_str: str, img: Any, api_source: str):

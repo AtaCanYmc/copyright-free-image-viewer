@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict, Any, Tuple
+from typing import List, Optional, Dict, Any
 import os
 import requests
 from dataclasses import dataclass
@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
-from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
 
 load_dotenv()
@@ -149,44 +148,7 @@ class PixabayService(ImageService):
         return 'invalid' in content_str or 'expired' in content_str
 
 
-    def find_download_url(self, img: PixabayImage) -> Tuple[Optional[str], float]:
-        url = img.largeImageURL
-        image_info = get_remote_size(url)
-        content_kb = image_info.get('kb_decimal', 0)
-        
-        if content_kb > self.max_image_kb:
-            logger.info(f"Skipped image {img.id} ({content_kb:.2f} KB exceeds limit)")
-            return None, None
-
-        return url, content_kb
-
-
-    def download_image(self, img: PixabayImage, folder_path: str) -> bool:
-        url, content_kb = self.find_download_url(img)
-        if not url:
-            return False
-
-        try:
-            response = requests.get(url, timeout=30)
-            if self.is_response_expired(response):
-                logger.error(f"URL invalid/expired: {url}")
-                return False
-                 
-            extension = url.split('.')[-1]
-            image_path = os.path.join(folder_path, f"{img.id}.{extension}")
-            create_folders_if_not_exist([folder_path])
-            
-            with open(image_path, 'wb') as file:
-                file.write(response.content)
-            
-            logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
-            return True
-        except Exception as e:
-            logger.error(f"Error downloading image {img.id} from Pixabay: {e}")
-            return False
-
-
-    def add_image_to_db(self, term_str: str, img: Any, api_source: str):
+    def add_image_to_db(self, term_str: str, img: PixabayImage, api_source: str):
         db = next(get_db())
         term_obj = db.query(SearchTerm).filter(SearchTerm.term == term_str).first()
 

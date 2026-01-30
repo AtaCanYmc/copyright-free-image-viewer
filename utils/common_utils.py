@@ -1,7 +1,6 @@
 import os
 import shutil
 from threading import Timer
-import requests
 from dotenv import load_dotenv
 import json
 import uuid
@@ -21,41 +20,7 @@ app_port = os.getenv('APP_PORT', '8080')
 app_host = os.getenv('APP_HOST', '0.0.0.0')
 use_debug_mode = os.getenv('DEBUG', 'false').lower() == 'true'
 use_reloader = os.getenv('USE_RELOADER', 'false').lower() == 'true'
-
-
-def get_remote_size(url: str) -> dict:
-    try:
-        head = requests.head(url, timeout=10)
-        cl = head.headers.get('Content-Length')
-        if cl:
-            size_bytes = int(cl)
-            return {
-                'bytes': size_bytes,
-                'kb_decimal': size_bytes / 1000 if size_bytes > 0 else 0,
-                'kb_binary': size_bytes / 1024 if size_bytes > 0 else 0,
-                'source': 'Content-Length header'
-            }
-    except Exception as e:
-        logger.error(f'Failed to get size of {url}. {e}')
-        pass
-
-    size = 0
-    try:
-        with requests.get(url, stream=True, timeout=30) as r:
-            r.raise_for_status()
-            for chunk in r.iter_content(8192):
-                if chunk:
-                    size += len(chunk)
-    except Exception as e:
-        logger.error(f"Could not determine size for URL: {url}. {e}")
-        pass
-
-    return {
-        'bytes': size,
-        'kb_decimal': size / 1000 if size > 0 else 0,
-        'kb_binary': size / 1024 if size > 0 else 0,
-        'source': 'streamed download'
-    }
+max_image_kb = int(os.getenv('MAX_KB_IMAGE_SIZE', '512'))
 
 
 def term_to_folder_name(term: str) -> str:
@@ -79,7 +44,7 @@ def read_html_as_string(file_path: str) -> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
 
-        
+
 def read_json_file(file_path: str) -> dict:
     with open(file_path, 'r', encoding='utf-8') as file:
         return json.load(file)

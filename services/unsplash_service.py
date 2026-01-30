@@ -1,13 +1,11 @@
 import os
-import time
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, Any
+from typing import Optional, List, Any
 import requests
 from dotenv import load_dotenv
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from services.image_service import ImageService
-from utils.common_utils import get_remote_size, create_folders_if_not_exist
 from utils.log_utils import logger
 
 load_dotenv()
@@ -156,59 +154,6 @@ class UnsplashService(ImageService):
 
         data = response.json()
         return [self.json_to_image(item) for item in data['results']]
-
-
-    def find_download_url(self, img: UnsplashImage) -> Tuple[Optional[str], float]:
-        priorities = [img.urls.full, img.urls.regular, img.urls.small]
-        
-        target_url = None
-        content_kb = 0
-        
-        for url_raw in priorities:
-            if not url_raw: continue
-            url = remove_id_from_img_url(url_raw)
-            image_info = get_remote_size(url)
-            kb = image_info.get('kb_decimal', 0)
-            
-            if kb <= self.max_image_kb:
-                target_url = url
-                content_kb = kb
-                break
-        
-        return target_url, content_kb
-
-
-    def download_image(self, img: UnsplashImage, folder_path: str) -> bool:
-        url, content_kb = self.find_download_url(img)
-        
-        if not url:
-            return False
-        
-        try:
-            image_data = requests.get(url, timeout=30)
-        except requests.RequestException as e:
-            logger.error(f"Error downloading image {img.id} from Unsplash: {e}")
-            return False
-            
-        if not content_kb:
-            logger.info(f"Skipped image {img.id} (all sizes exceed {self.max_image_kb} KB)")
-            return False
-
-        try:
-            image_data = requests.get(url, timeout=30)
-        except requests.RequestException as e:
-            logger.error(f"Error downloading image {img.id} from Unsplash: {e}")
-            return False
-
-        extension = get_extension_from_url(url)
-        image_path = os.path.join(folder_path, f"{img.id}.{extension}")
-        create_folders_if_not_exist([folder_path])
-        
-        with open(image_path, 'wb') as file:
-            file.write(image_data.content)
-            
-        logger.info(f"Downloaded image {img.id} to {image_path} ({content_kb:.2f} KB)")
-        return True
 
 
     def add_image_to_db(self, term_str: str, img: Any, api_source: str):

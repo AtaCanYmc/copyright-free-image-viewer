@@ -5,9 +5,9 @@ from flask import Blueprint, redirect, url_for, render_template_string, request
 from core.db import get_db
 from core.models import Image, SearchTerm, ImageStatus
 from core.session import session
-from utils.common_utils import project_name, read_html_as_string, term_to_folder_name, is_download
+from utils.common_utils import project_name, read_html_as_string, term_to_folder_name
 from utils.log_utils import logger
-from utils.common_utils import min_image_for_term
+from utils.download_utils import download_image
 
 # Import Services
 from services.pexels_service import PexelsService
@@ -143,11 +143,9 @@ def current_photo_info():
     return cur_term, photo, url, cur_term_saved_img_count
 
 
-def download_image(img: Image):
-    c_api = session.current_api
+def download_db_image(img: Image):
     folder = f"assets/{project_name}/image_files/{term_to_folder_name(img.search_term.term)}"
-    service = get_service_by_api(c_api)
-    service.download_image(img, folder)
+    download_image(img, folder)
 
 
 @review_bp.route('/review')
@@ -259,7 +257,7 @@ def download_all_images():
     db = next(get_db())
     images = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).all()
     for img in images:
-        download_image(img)
+        download_db_image(img)
     return redirect(url_for("review.index"))
 
 @review_bp.route("/download-api-images", methods=["POST"])
@@ -267,5 +265,5 @@ def download_api_images():
     service = get_service_by_api(session.current_api)
     images = service.get_all_images()
     for img in images:
-        download_image(img)
+        download_db_image(img)
     return redirect(url_for("review.index"))
