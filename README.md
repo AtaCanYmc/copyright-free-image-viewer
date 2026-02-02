@@ -61,7 +61,7 @@ The fastest way to get started. ensuring a clean environment.
 
 3. **Launch:**
    ```bash
-   docker-compose up --build <project_name>
+   docker-compose up --build
    ```
    Visit **http://localhost:8080** to start curating.
 
