@@ -12,6 +12,7 @@ from routes.settings import settings_bp
 from routes.setup import setup_bp
 from utils.common_utils import create_folders_if_not_exist, delete_files_if_exist, read_html_as_string
 from utils.env_constants import app_host, app_port, project_name, use_debug_mode, use_reloader
+from utils.log_utils import logger
 
 # Initialize Database
 init_db()
@@ -50,6 +51,11 @@ app.register_blueprint(gallery_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(setup_bp)
 app.register_blueprint(explorer_bp)
+
+
+@app.route('/health')
+def health_check():
+    return {"status": "ok"}, 200
 
 
 @app.route('/')
@@ -95,4 +101,9 @@ def open_browser():
 
 if __name__ == "__main__":
     Timer(2, open_browser).start()
-    app.run(host=app_host, port=app_port, debug=use_debug_mode, use_reloader=use_reloader)
+    app.run(
+        host=app_host,
+        port=app_port,
+        debug=use_debug_mode,
+        use_reloader=use_reloader
+    )

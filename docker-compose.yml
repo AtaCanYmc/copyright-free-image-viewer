@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  media-reviewer:
+  copyright-free-media-reviewer:
     build: .
-    container_name: media_reviewer_app
+    container_name: copyright-free-media-reviewer
     ports:
       - "8080:8080"
     env_file:
