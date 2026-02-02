@@ -43,6 +43,7 @@ def test_wger_search_images(mock_get):
     assert "term=bench" in args[0]
     assert "limit=10" in args[0]
 
+
 @patch('services.wger_service.requests.get')
 def test_wger_search_images_empty(mock_get):
     mock_response = MagicMock()
@@ -52,6 +53,7 @@ def test_wger_search_images_empty(mock_get):
     service = WgerService()
     results = service.search_images("unknown")
     assert results == []
+
 
 @patch('services.wger_service.requests.get')
 def test_wger_search_error(mock_get):

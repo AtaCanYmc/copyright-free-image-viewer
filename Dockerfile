@@ -38,6 +38,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD curl -fs http://localhost:8080/health || exit 1
 
-# Entrypoint + default cmd
+# Entrypoint
 ENTRYPOINT ["python", "app.py"]
-CMD ["default_project"]

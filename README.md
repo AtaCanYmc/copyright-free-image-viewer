@@ -57,6 +57,7 @@ The fastest way to get started. ensuring a clean environment.
    # Configuration
    APP_PORT=8080
    DEBUG=True
+   PROJECT_NAME=MyProject
    ```
 
 3. **Launch:**
@@ -74,9 +75,18 @@ The fastest way to get started. ensuring a clean environment.
 
 2. **Run Application:**
    ```bash
-   python app.py <project_name>
+   python app.py
    ```
 
+### Option 3: Run with Gunicorn
+1. **Install Dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. **Run Application:**
+    ```bash
+    gunicorn app:app --bind 0.0.0.0:8080
+    ```
 ---
 
 ## 📖 Usage Workflow
