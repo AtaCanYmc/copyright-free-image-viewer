@@ -12,7 +12,6 @@ from routes.settings import settings_bp
 from routes.setup import setup_bp
 from utils.common_utils import create_folders_if_not_exist, delete_files_if_exist, read_html_as_string
 from utils.env_constants import app_host, app_port, project_name, use_debug_mode, use_reloader
-from utils.log_utils import logger
 
 # Initialize Database
 init_db()
