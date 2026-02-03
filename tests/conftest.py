@@ -1,10 +1,4 @@
-import os
-import sys
-
 import pytest
-
-# Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -15,12 +9,14 @@ from core.db import Base, get_db
 # Use in-memory SQLite for tests
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
+
 @pytest.fixture(scope="session")
 def db_engine():
     engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
     yield engine
     Base.metadata.drop_all(bind=engine)
+
 
 @pytest.fixture(scope="function")
 def db_session(db_engine):
@@ -33,6 +29,7 @@ def db_session(db_engine):
     session.close()
     transaction.rollback()
     connection.close()
+
 
 @pytest.fixture
 def client(db_session):
