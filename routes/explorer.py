@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, render_template_string
 
 from core.db import get_db, get_query_as_json
 from core.models import Image
-from factory.image_service_factory import ImageServiceFactory
+from services.db_manager import DBManager
 from utils.common_utils import get_directory_tree, read_html_as_string, save_csv_file, save_json_file
 from utils.env_constants import project_name
 from utils.image_utils import convert_to_webp
@@ -67,20 +67,8 @@ def convert_db_csv_action():
 
 @explorer_bp.route('/explorer/actions/refetch/<api_source>', methods=['POST'])
 def refetch_action(api_source):
-    try:
-        logger.info(f"Refetching images from {api_source}...")
-        service = ImageServiceFactory.get_service(api_source)
-        db = next(get_db())
-        api_images = db.query(Image).filter(Image.api_source == api_source).all()
-
-        for img in api_images:
-            new_img = service.fetch_image(img.source_id)
-            service.update_image_in_db(new_img)
-
-        return jsonify({"status": "success", "message": f"Refetched {len(api_images)} images from {api_source}."})
-    except Exception as e:
-        logger.error(f"Error refetching from {api_source}: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+    # stock-fetcher is a search-only client; ID-based refetching is deprecated.
+    return jsonify({"status": "error", "message": "Refetching by ID is deprecated in the new stock-fetcher package."}), 400
 
 
 @explorer_bp.route('/explorer/actions/delete-images', methods=['POST'])

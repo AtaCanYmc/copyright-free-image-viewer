@@ -3,10 +3,12 @@ from typing import Any
 from flask import Blueprint, redirect, render_template_string, request, url_for
 from sqlalchemy import func
 
+import os
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from core.session import session
-from factory.image_service_factory import ImageServiceFactory
+from stock_fetcher import ClientFactory
+from services.db_manager import DBManager
 from utils.common_utils import read_html_as_string, term_to_folder_name
 from utils.download_utils import download_image
 from utils.env_constants import min_image_for_term, project_name, search_per_page
@@ -17,25 +19,9 @@ REVIEW_PAGE_HTML = read_html_as_string("templates/review_page.html")
 
 
 def get_url_from_img(photo, api) -> str:
-    url = None
-
-    if api == 'pixabay':
-        url = photo.largeImageURL
-    elif api == 'pexels':
-        url = getattr(photo, "large2x", None) or getattr(photo, "original", None)
-    elif api == 'unsplash':
-        url = getattr(photo.urls, "full", None) or getattr(photo.urls, "regular", None)
-        from services.unsplash_service import remove_id_from_img_url
-        url = remove_id_from_img_url(url)
-    elif api == 'flickr':
-        url = getattr(photo, 'hi_res_url', None) or getattr(photo, 'url', None)
-
-    if not url:
-        src = getattr(photo, "src", None)
-        if isinstance(src, dict):
-            url = src.get("large2x") or src.get("original") or next(iter(src.values()), None)
-
-    return url
+    if isinstance(photo, dict):
+        return photo.get('url_original') or photo.get('url')
+    return None
 
 
 def get_done_term_count() -> int:
@@ -79,8 +65,9 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
     photos = []
 
     try:
-        service = ImageServiceFactory.get_service(api_type)
-        photos = service.search_images(term, per_page=search_per_page)
+        api_key = os.getenv(f"{api_type.upper()}_API_KEY", "")
+        service = ClientFactory.get(api_type, api_key=api_key)
+        photos = service.search(term, limit=search_per_page)
     except Exception as e:
         logger.error(f"Error fetching photos: {e}")
         photos = []
@@ -90,8 +77,7 @@ def get_photos_for_term_idx(idx, use_cache=True) -> list[Any]:
 
 
 def add_image_to_db(term_str: str, img: Any, api_source: str):
-    service = ImageServiceFactory.get_service(api_source)
-    service.add_image_to_db(term_str, img, api_source)
+    DBManager.add_image_to_db(term_str, img, api_source)
 
 
 def advance_after_action():
@@ -269,8 +255,7 @@ def download_all_images():
 
 @review_bp.route("/download-api-images", methods=["POST"])
 def download_api_images():
-    service = ImageServiceFactory.get_service(session.current_api)
-    images = service.get_all_images()
+    images = DBManager.get_all_images(session.current_api)
     for img in images:
         download_db_image(img)
     return redirect(url_for("review.index"))
