@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="Copyright-Free Image Viewer Banner" width="600">
+  <img src="assets/banner.png" alt="Copyright-Free Image Viewer Banner" width="400" style="max-width: 100%;">
 </p>
 
 # 📸 copyright-free-image-viewer
