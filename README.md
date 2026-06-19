@@ -1,15 +1,25 @@
-# 📸 copyright-free-image-viewer
+<p align="center">
+  <img src="assets/banner.png" alt="Copyright-Free Image Viewer Banner" width="100%">
+</p>
 
+# 📸 copyright-free-image-viewer
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=for-the-badge&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.0%2B-black?style=for-the-badge&logo=flask&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+<a href="https://opensource.org/licenses/Apache-2.0">
+  <img src="https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge" alt="License">
+</a>
 
 **Copyright-free-image-viewer** is a robust, open-source media procurement and curation platform. It unifies search, review, and asset management processes into a single, elegant interface, connecting seamlessly to major stock image providers (Pexels, Pixabay, Unsplash, Flickr) to streamline your creative workflow.
 
 ## 🚀 Key Features
 
+### ⚡ Powered by `stock-fetcher`
+Under the hood, this application relies on our custom-built **[`stock-fetcher`](https://github.com/AtaCanYmc/stock-fetcher)** library. By isolating the API logic into its own modular Python package, this web app achieves:
+- **Clean Architecture**: API communication and data standardization are entirely decoupled from the Flask application.
+- **Unified Interface**: Fetching data from Pexels, Pixabay, Unsplash, or Flickr uses the exact same `ClientFactory` integration.
+- **Extensibility**: Adding a new provider to the application simply requires updating the `stock-fetcher` core.
 ### 🔍 Unified Search & Curation
 - **Multi-API Support**: Fetch high-quality images simultaneously from **Pexels**, **Pixabay**, **Unsplash**, and **Flickr**.
 - **Smart Queue**: Automatic deduplication and session management ensure you never review the same image twice.
@@ -157,7 +167,7 @@ We welcome contributions to make Copyright-free-image-viewer even better!
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the **Apache License 2.0**. See `License` for more information.
 
 ---
 
