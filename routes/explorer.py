@@ -5,30 +5,26 @@ from flask import Blueprint, jsonify, render_template_string
 
 from core.db import get_db, get_query_as_json
 from core.models import Image
-from services.db_manager import DBManager
 from utils.common_utils import get_directory_tree, read_html_as_string, save_csv_file, save_json_file
 from utils.env_constants import project_name
 from utils.image_utils import convert_to_webp
 from utils.log_utils import logger
 
-explorer_bp = Blueprint('explorer', __name__)
+explorer_bp = Blueprint("explorer", __name__)
 EXPLORER_PAGE_HTML = read_html_as_string("templates/explorer_page.html")
 
 
-@explorer_bp.route('/explorer')
+@explorer_bp.route("/explorer")
 def explorer():
-    root_path = os.path.join('assets', project_name)
+    root_path = os.path.join("assets", project_name)
     tree_data = get_directory_tree(root_path) if os.path.exists(root_path) else {}
-    return render_template_string(
-        EXPLORER_PAGE_HTML,
-        tree_data=tree_data,
-        project_name=project_name
-    )
+    return render_template_string(EXPLORER_PAGE_HTML, tree_data=tree_data, project_name=project_name)
 
-@explorer_bp.route('/explorer/actions/convert-webp', methods=['POST'])
+
+@explorer_bp.route("/explorer/actions/convert-webp", methods=["POST"])
 def convert_webp_action():
     try:
-        images_path = os.path.join('assets', project_name, 'image_files')
+        images_path = os.path.join("assets", project_name, "image_files")
         logger.info(f"Converting images in {images_path} to WebP...")
         convert_to_webp(images_path)
         return jsonify({"status": "success", "message": "Conversion started/completed."})
@@ -37,13 +33,13 @@ def convert_webp_action():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@explorer_bp.route('/explorer/actions/convert-db-json', methods=['POST'])
+@explorer_bp.route("/explorer/actions/convert-db-json", methods=["POST"])
 def convert_db_json_action():
     try:
         logger.info("Converting images in database to JSON...")
         query = "SELECT i.*, st.term FROM images i JOIN search_terms st ON i.search_term_id = st.id"
         json_data = get_query_as_json(query)
-        file_path = os.path.join('assets', project_name, 'json_files', 'images.json')
+        file_path = os.path.join("assets", project_name, "json_files", "images.json")
         save_json_file(file_path, json_data)
         return jsonify({"status": "success", "message": "Conversion started/completed."})
     except Exception as e:
@@ -51,13 +47,13 @@ def convert_db_json_action():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@explorer_bp.route('/explorer/actions/convert-db-csv', methods=['POST'])
+@explorer_bp.route("/explorer/actions/convert-db-csv", methods=["POST"])
 def convert_db_csv_action():
     try:
         logger.info("Converting images in database to CSV...")
         query = "SELECT i.*, st.term FROM images i JOIN search_terms st ON i.search_term_id = st.id"
         csv_data = get_query_as_json(query)
-        file_path = os.path.join('assets', project_name, 'csv_files', 'images.csv')
+        file_path = os.path.join("assets", project_name, "csv_files", "images.csv")
         save_csv_file(file_path, csv_data)
         return jsonify({"status": "success", "message": "Conversion started/completed."})
     except Exception as e:
@@ -65,16 +61,24 @@ def convert_db_csv_action():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@explorer_bp.route('/explorer/actions/refetch/<api_source>', methods=['POST'])
+@explorer_bp.route("/explorer/actions/refetch/<api_source>", methods=["POST"])
 def refetch_action(api_source):
     # stock-fetcher is a search-only client; ID-based refetching is deprecated.
-    return jsonify({"status": "error", "message": "Refetching by ID is deprecated in the new stock-fetcher package."}), 400
+    return (
+        jsonify(
+            {
+                "status": "error",
+                "message": "Refetching by ID is deprecated in the new stock-fetcher package.",
+            }
+        ),
+        400,
+    )
 
 
-@explorer_bp.route('/explorer/actions/delete-images', methods=['POST'])
+@explorer_bp.route("/explorer/actions/delete-images", methods=["POST"])
 def delete_images_action():
     try:
-        images_path = os.path.join('assets', project_name, 'image_files')
+        images_path = os.path.join("assets", project_name, "image_files")
         if os.path.exists(images_path):
             shutil.rmtree(images_path)
             os.makedirs(images_path, exist_ok=True)
@@ -86,7 +90,7 @@ def delete_images_action():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-@explorer_bp.route('/explorer/actions/delete-db', methods=['POST'])
+@explorer_bp.route("/explorer/actions/delete-db", methods=["POST"])
 def delete_db_action():
     try:
         db = next(get_db())
@@ -97,4 +101,3 @@ def delete_db_action():
     except Exception as e:
         logger.error(f"Error deleting images from database: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
-

@@ -1,26 +1,26 @@
+import os
 from typing import Any
 
 from flask import Blueprint, redirect, render_template_string, request, url_for
 from sqlalchemy import func
+from stock_fetcher import ClientFactory
 
-import os
 from core.db import get_db
 from core.models import Image, ImageStatus, SearchTerm
 from core.session import session
-from stock_fetcher import ClientFactory
 from services.db_manager import DBManager
 from utils.common_utils import read_html_as_string, term_to_folder_name
 from utils.download_utils import download_image
 from utils.env_constants import min_image_for_term, project_name, search_per_page
 from utils.log_utils import logger
 
-review_bp = Blueprint('review', __name__)
+review_bp = Blueprint("review", __name__)
 REVIEW_PAGE_HTML = read_html_as_string("templates/review_page.html")
 
 
 def get_url_from_img(photo, api) -> str:
     if isinstance(photo, dict):
-        return photo.get('url_original') or photo.get('url')
+        return photo.get("url_original") or photo.get("url")
     return None
 
 
@@ -40,13 +40,12 @@ def get_done_term_count() -> int:
 def get_current_search_terms():
     db = next(get_db())
     eligible_terms_query = (
-            db.query(SearchTerm)
-            .outerjoin(Image, (SearchTerm.id == Image.search_term_id) &
-                              (Image.status == ImageStatus.APPROVED.value))
-            .group_by(SearchTerm.id)
-            .having(func.count(Image.id) < min_image_for_term)
-            .all()
-        )
+        db.query(SearchTerm)
+        .outerjoin(Image, (SearchTerm.id == Image.search_term_id) & (Image.status == ImageStatus.APPROVED.value))
+        .group_by(SearchTerm.id)
+        .having(func.count(Image.id) < min_image_for_term)
+        .all()
+    )
     return [t.term for t in eligible_terms_query]
 
 
@@ -104,10 +103,11 @@ def current_photo_info():
     term_obj = db.query(SearchTerm).filter(SearchTerm.term == cur_term).first()
     cur_term_saved_img_count = 0
     if term_obj:
-        cur_term_saved_img_count = db.query(Image).filter(
-            Image.search_term_id == term_obj.id,
-            Image.status == ImageStatus.APPROVED.value
-        ).count()
+        cur_term_saved_img_count = (
+            db.query(Image)
+            .filter(Image.search_term_id == term_obj.id, Image.status == ImageStatus.APPROVED.value)
+            .count()
+        )
 
     photos: Any = get_photos_for_term_idx(ti)
 
@@ -125,7 +125,7 @@ def download_db_image(img: Image):
     download_image(img, folder)
 
 
-@review_bp.route('/review')
+@review_bp.route("/review")
 def index():
     terms = get_current_search_terms()
 
@@ -136,10 +136,7 @@ def index():
         db = next(get_db())
         total_downloaded = db.query(Image).filter(Image.status == ImageStatus.APPROVED.value).count()
         return render_template_string(
-            REVIEW_PAGE_HTML,
-            finished=True,
-            downloaded=total_downloaded,
-            project_name=project_name
+            REVIEW_PAGE_HTML, finished=True, downloaded=total_downloaded, project_name=project_name
         )
 
     term, photo, url, cur_term_saved_img_count = current_photo_info()
@@ -162,7 +159,7 @@ def index():
         current_api=session.current_api,
         term_photo_counter=cur_term_saved_img_count,
         project_name=project_name,
-        done_terms_count=get_done_term_count()
+        done_terms_count=get_done_term_count(),
     )
 
 
@@ -211,19 +208,19 @@ def api_decision():
 
     if action == "use-pexels-api":
         session.photos_cache = {}
-        session.current_api = 'pexels'
+        session.current_api = "pexels"
         session.photo_idx = 0
     elif action == "use-pixabay-api":
         session.photos_cache = {}
-        session.current_api = 'pixabay'
+        session.current_api = "pixabay"
         session.photo_idx = 0
     elif action == "use-unsplash-api":
         session.photos_cache = {}
-        session.current_api = 'unsplash'
+        session.current_api = "unsplash"
         session.photo_idx = 0
     elif action == "use-flickr-api":
         session.photos_cache = {}
-        session.current_api = 'flickr'
+        session.current_api = "flickr"
         session.photo_idx = 0
 
     return redirect(url_for("review.index"))
